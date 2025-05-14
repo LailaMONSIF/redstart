@@ -733,5 +733,69 @@ def _(mo):
     return
 
 
+@app.cell
+def _(M, g, l, np, plt, sci):
+    def _():
+        y0 = np.array([0.0, 0.0, 10.0, 0.0, 0.0, 0.0])  # [x, vx, y, vy, theta, omega]
+        t_span = (0, 5)
+        t_eval = np.linspace(*t_span, 101)  
+
+        def rocket_dynamics(t, y, f, phi):
+            x, vx, y_, vy, theta, omega = y
+
+            Fx = -f * np.sin(theta + phi)
+            Fy = f * np.cos(theta + phi)
+            torque = l * f * np.sin(phi)  # moment = r × F
+
+            return [
+                vx,
+                Fx / M,
+                vy,
+                (Fy - M * g) / M,
+                omega,
+                torque / (M * l**2)
+            ]
+
+
+        def simulate_case(f, phi):
+            return sci.solve_ivp(lambda t, y: rocket_dynamics(t, y, f, phi),
+                                 t_span=t_span, y0=y0, t_eval=t_eval)
+
+        sol_freefall = simulate_case(f=0, phi=0)
+        sol_hover = simulate_case(f=M*g, phi=0)
+        sol_tilted = simulate_case(f=M*g, phi=np.pi/8)
+
+        fig, axes = plt.subplots(3, 5, figsize=(15, 9))
+        titles = ["t = 0s", "t = 1s", "t = 2s", "t = 3s", "t = 4s"]
+        cases = [sol_freefall, sol_hover, sol_tilted]
+        case_names = ["Free Fall", "Hover", "Tilted Thrust"]
+
+        for row, (sol, case_name) in enumerate(zip(cases, case_names)):
+            for col, t_sec in enumerate(range(0, 5)):
+                ax = axes[row][col]
+                idx = np.argmin(np.abs(sol.t - t_sec)) 
+                state = sol.y[:, idx]
+                x, y, theta = state[0], state[2], state[4]
+
+                if row == 0:
+                    f_val, phi_val = 0, 0
+                elif row == 1:
+                    f_val, phi_val = M * g, 0
+                else:
+                    f_val, phi_val = M * g, np.pi / 8
+
+                draw_booster(ax, x, y, theta, f_val, phi_val)
+                if row == 0:
+                    ax.set_title(titles[col])
+                if col == 0:
+                    ax.set_ylabel(case_names[row], fontsize=10)
+
+        plt.tight_layout()
+        return plt.show()
+
+    _()
+    return
+
+
 if __name__ == "__main__":
     app.run()
