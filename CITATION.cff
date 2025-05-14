@@ -1,9 +1,7 @@
 cff-version: 1.2.0
 message: "If you use this project, please cite it as below."
 authors:
-- family-names: "Boisgérault"
-  given-names: "Sébastien"
-family-names : "MONSIF"
+- family-names : "MONSIF"
 given-names : "Laila"
 family-names : "BAHILI"
 given-names : "Wiam"
