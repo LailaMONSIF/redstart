@@ -664,6 +664,53 @@ def _(mo):
     return
 
 
+@app.function
+def draw_booster(ax, x, y, theta, f, phi, l=1.0, Mg=1.0):
+    import numpy as np
+    import matplotlib.patches as patches
+
+    # Position de la base et du haut du booster
+    dx = l * np.sin(theta)
+    dy = l * np.cos(theta)
+    x0, y0 = x - dx, y - dy  # base
+    x1, y1 = x + dx, y + dy  # sommet
+
+    # Efface tout
+    ax.clear()
+
+    # Dessin du booster (trait noir)
+    ax.plot([x0, x1], [y0, y1], color="black", lw=5)
+
+    # Dessin de la flamme (rectangle orange)
+    # direction = theta + phi
+    alpha = theta + phi
+    flame_length = (f / Mg) * l  # proportionnelle à f
+    fx = flame_length * np.sin(alpha)
+    fy = flame_length * np.cos(alpha)
+    ax.plot([x0, x0 - fx], [y0, y0 - fy], color="orange", lw=4)
+
+    # Zone d'atterrissage (rectangle beige)
+    pad = patches.Rectangle((-1, -0.25), 2, 0.2, color="sandybrown")
+    ax.add_patch(pad)
+
+    # Réglages visuels
+    ax.set_xlim(-2, 2)
+    ax.set_ylim(-1, 12)
+    ax.set_aspect("equal")
+    ax.set_facecolor("aliceblue")
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_title("Booster + Flamme + Zone d'atterrissage")
+
+
+@app.cell
+def _(np, plt):
+    figure, ax = plt.subplots(figsize=(4, 8))
+    draw_booster(ax, x=0, y=10, theta=np.pi/16, f=1.5, phi=0.0, l=1.0, Mg=1.0)
+    plt.show()
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(
