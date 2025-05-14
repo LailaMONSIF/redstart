@@ -213,6 +213,14 @@ def _(mo):
     return
 
 
+@app.cell
+def _():
+    g = 1      # m/s²
+    M = 1      # kg
+    l = 1         # m
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(
