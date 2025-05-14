@@ -765,7 +765,8 @@ def _(M, g, l, np, plt, sci):
         sol_hover = simulate_case(f=M*g, phi=0)
         sol_tilted = simulate_case(f=M*g, phi=np.pi/8)
 
-        fig, axes = plt.subplots(3, 5, figsize=(15, 9))
+        # Set up a larger figure size and tighter spacing
+        fig, axes = plt.subplots(3, 5, figsize=(18, 12))
         titles = ["t = 0s", "t = 1s", "t = 2s", "t = 3s", "t = 4s"]
         cases = [sol_freefall, sol_hover, sol_tilted]
         case_names = ["Free Fall", "Hover", "Tilted Thrust"]
@@ -786,13 +787,21 @@ def _(M, g, l, np, plt, sci):
 
                 draw_booster(ax, x, y, theta, f_val, phi_val)
                 if row == 0:
-                    ax.set_title(titles[col])
+                    ax.set_title(titles[col], fontsize=14)
                 if col == 0:
-                    ax.set_ylabel(case_names[row], fontsize=10)
+                    ax.set_ylabel(case_names[row], fontsize=12)
 
-        plt.tight_layout()
-        return plt.show()
+                # Make axes visible and improve visibility of the plot
+                ax.set_xlabel("X Position (m)", fontsize=12)
+                ax.set_ylabel("Y Position (m)", fontsize=12)
+                ax.grid(True)
+                ax.set_xlim(-12, 12)  # Adjust for better visibility
+                ax.set_ylim(0, 15)  # Adjust for better visibility
 
+        # Adjust spacing between subplots
+        plt.subplots_adjust(wspace=0.3, hspace=0.3)
+        plt.suptitle("Booster Dynamics Over Time", fontsize=18, y=1.03)  # Main title
+        plt.show()
     _()
     return
 
