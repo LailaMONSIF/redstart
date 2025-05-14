@@ -71,7 +71,7 @@ def _():
     import autograd.numpy as np
     import autograd.numpy.linalg as la
     from autograd import isinstance, tuple
-    return FFMpegWriter, FuncAnimation, np, plt, tqdm
+    return FFMpegWriter, FuncAnimation, np, plt, sci, tqdm
 
 
 @app.cell(hide_code=True)
@@ -218,7 +218,7 @@ def _():
     g = 1      # m/s²
     M = 1      # kg
     l = 1         # m
-    return M, l
+    return M, g, l
 
 
 @app.cell(hide_code=True)
@@ -518,6 +518,38 @@ def _(mo):
     Test this typical example with your function `redstart_solve` and check that its graphical output makes sense.
     """
     )
+    return
+
+
+@app.cell
+def _(M, g, l, np, plt, sci):
+    def simulate_booster_drop(f_val=0.0, phi_val=0.0):
+        def f_phi(t, y):
+            return np.array([f_val, phi_val])
+
+        def redstart_ode(t, y):
+            x, dx, y_pos, dy, theta, dtheta = y
+            f, phi = f_phi(t, y)
+            ddx = f * np.sin(theta + phi) / M
+            ddy = (f * np.cos(theta + phi) - M * g) / M
+            ddtheta = -3 * f * np.sin(theta + phi) / (M * l)
+            return [dx, ddx, dy, ddy, dtheta, ddtheta]
+
+        sol = sci.solve_ivp(redstart_ode, [0.0, 5.0], [0.0, 0.0, 10.0, 0.0, 0.0, 0.0], t_eval=np.linspace(0, 5, 1000))
+        t = sol.t
+        y_pos = sol.y[2]
+        plt.plot(t, y_pos)
+        plt.title("Chute  du booster")
+        plt.xlabel("temps (s)")
+        plt.ylabel("hauteur $y(t)$")
+        plt.grid(True)
+        plt.show()
+    return (simulate_booster_drop,)
+
+
+@app.cell
+def _(simulate_booster_drop):
+    simulate_booster_drop()
     return
 
 
