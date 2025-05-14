@@ -254,6 +254,63 @@ def _(mo):
     return
 
 
+@app.cell
+def _(mo):
+    mo.md(
+        r"""
+    ### Équation du centre de masse du booster
+
+    Le booster est soumis à deux forces :
+
+    - La gravité, qui agit vers le bas :
+
+    $$
+    \vec{F}_g = \begin{bmatrix} 0 \\\\ -Mg \end{bmatrix}
+    $$
+
+    - La poussée du moteur, appliquée à la base du booster.  
+      Elle est orientée d’un angle $\varphi$ par rapport à l’axe du booster, lequel est incliné d’un angle $\theta$ par rapport à la verticale.  
+      L’angle total de la poussée dans le repère global est donc $\theta + \varphi$ :
+
+    $$
+    \vec{F}_r = f \begin{bmatrix} -\sin(\theta + \varphi) \\\\ \cos(\theta + \varphi) \end{bmatrix}
+    $$
+
+    D’après la deuxième loi de Newton appliquée au centre de masse $\vec{r}(t) = (x(t), y(t))$ :
+
+    $$
+    M \ddot{\vec{r}} = \vec{F}_g + \vec{F}_r
+    $$
+
+    On obtient le système d’équations différentielles :
+
+    $$
+    \begin{cases}
+    \ddot{x}(t) = -\dfrac{f}{M} \cdot \sin(\theta + \varphi) \\\\
+    \ddot{y}(t) = \dfrac{f}{M} \cdot \cos(\theta + \varphi) - g
+    \end{cases}
+    $$
+
+    #### 🔢 Cas du modèle simplifié
+
+    Avec les constantes numériques du modèle :
+    - $M = 1$ (kg)  
+    - $g = 1$ (m/s²)
+
+    Le système devient :
+
+
+    $$
+    \begin{aligned}
+    \ddot{x}(t) &= -f \cdot \sin(\theta + \varphi) \\
+    \ddot{y}(t) &= f \cdot \cos(\theta + \varphi) - 1
+    \end{aligned}
+    $$
+    """
+    )
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(
