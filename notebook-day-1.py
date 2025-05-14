@@ -233,6 +233,15 @@ def _(mo):
     return
 
 
+@app.function
+def reactor_force(f, theta, phi):
+    import numpy as np  # import local, pas de conflit avec les autres cellules
+    beta = theta + phi
+    fx = -f * np.sin(beta)
+    fy = f * np.cos(beta)
+    return np.array([fx, fy])
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(
