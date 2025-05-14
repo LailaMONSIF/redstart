@@ -371,6 +371,7 @@ def _(mo):
     $$
 
     où :
+
     - $J$ est le *moment d’inertie* du booster par rapport à son centre,
     - $\ddot{\theta}(t)$ est l’*accélération angulaire*,
     - $\tau(t)$ est le *moment (ou couple)* appliqué par la poussée du réacteur.
