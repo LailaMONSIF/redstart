@@ -218,7 +218,7 @@ def _():
     g = 1      # m/s²
     M = 1      # kg
     l = 1         # m
-    return
+    return M, l
 
 
 @app.cell(hide_code=True)
@@ -323,6 +323,31 @@ def _(mo):
     return
 
 
+@app.cell
+def _(mo):
+    mo.md(
+        r"""
+
+    \[
+    J = \frac{1}{12} M L_{\text{total}}^2
+    \]
+
+    In our case, the total length of the booster is \( L_{\text{total}} = 2\ell \). Substituting this into the formula:
+
+    \[
+    J = \frac{1}{3} M \ell^2
+    \]
+    """
+    )
+    return
+
+
+@app.cell
+def _(M, l):
+    J = (1/3) * M * (l**2)
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(
@@ -330,6 +355,122 @@ def _(mo):
     ## 🧩 Tilt
 
     Give the ordinary differential equation that governs the tilt angle $\theta$.
+    """
+    )
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(
+        r"""
+    Le mouvement de rotation du booster autour de son centre de masse est gouverné par le *principe fondamental de la dynamique en rotation* :
+
+    $$
+    J \cdot \ddot{\theta}(t) = \tau(t)
+    $$
+
+    où :
+    - $J$ est le *moment d’inertie* du booster par rapport à son centre,
+    - $\ddot{\theta}(t)$ est l’*accélération angulaire*,
+    - $\tau(t)$ est le *moment (ou couple)* appliqué par la poussée du réacteur.
+
+    ---
+    #### 1. Vecteur de position $\vec{r}$
+
+    Le point d’application de la poussée est la *base du booster*, située à une distance $\ell$ sous le centre de masse.
+
+    Le vecteur $\vec{r}$ qui va *du centre de masse vers la base* est :
+
+    $$
+    \vec{r} = -\ell \cdot \vec{u}_\theta
+    = -\ell \begin{bmatrix} \sin(\theta) \\ \cos(\theta) \end{bmatrix}
+    $$
+
+    ---
+
+    #### 2. Vecteur force $\vec{F}$
+
+    La poussée est orientée à un angle $\varphi$ par rapport à l’axe du booster, et donc à un angle total $\theta + \varphi$ dans le repère global.
+
+    Sa projection est :
+
+    $$
+    \vec{F} = f \cdot \begin{bmatrix}
+    - \sin(\theta + \varphi) \\
+    \cos(\theta + \varphi)
+    \end{bmatrix}
+    $$
+    ---
+
+    #### 3. Calcul du produit vectoriel en 2D
+
+    Le moment est donné par :
+
+    $$
+    \tau = r_x F_y - r_y F_x
+    $$
+
+    avec :
+    - $r_x = -\ell \sin(\theta)$
+    - $r_y = -\ell \cos(\theta)$
+    - $F_x = -f \sin(\theta + \varphi)$
+    - $F_y = f \cos(\theta + \varphi)$
+
+    \[
+    \begin{aligned}
+    \tau &= (-\ell \sin(\theta)) \cdot f \cos(\theta + \varphi)
+         - (-\ell \cos(\theta)) \cdot (-f \sin(\theta + \varphi)) \\
+         &= -\ell f \sin(\theta) \cos(\theta + \varphi)
+         - \ell f \cos(\theta) \sin(\theta + \varphi)
+    \end{aligned}
+    \]
+
+    On utilise l’identité trigonométrique :
+
+    $$
+    \sin(a + b) = \sin a \cos b + \cos a \sin b
+    $$
+
+    donc :
+
+    $$
+    \tau = -\ell f \cdot \sin(\theta + \varphi)
+    $$
+
+    ---
+    En utilisant le principe fondamental :
+
+    $$
+    J \cdot \ddot{\theta}(t) = -\ell f \cdot \sin(\theta + \varphi)
+    $$
+
+    et en remplaçant $J = \dfrac{1}{3} M \ell^2$ :
+
+    $$
+    \frac{1}{3} M \ell^2 \cdot \ddot{\theta}(t) = -\ell f \cdot \sin(\theta + \varphi)
+    $$
+
+    On simplifie :
+
+    $$
+    \ddot{\theta}(t) = -\frac{3f}{M\ell} \cdot \sin(\theta + \varphi)
+    $$
+
+    ---
+
+    ### Cas du modèle
+
+    Avec :
+    $M = 1$
+     $\ell = 1$
+
+    On obtient :
+
+    $$
+    \boxed{\ddot{\theta}(t) = -3f \cdot \sin(\theta + \varphi)}
+    $$
+
     """
     )
     return
