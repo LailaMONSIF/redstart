@@ -567,6 +567,71 @@ def _(mo):
     return
 
 
+@app.cell
+def _(M, g, np, plt, sci):
+    # Constants
+    y0 = 10.0     # initial position (m)
+    vy0 = -2.0     # initial velocity (m/s)
+    yf = 1.0      # final position (m)
+    vyf = 0.0     # final velocity (m/s)
+    T = 5.0       # total time (s)
+
+    # Cubic polynomial: y(t) = a0 + a1*t + a2*t^2 + a3*t^3
+    # Boundary conditions:
+    # y(0) = y0, y'(0) = vy0, y(T) = yf, y'(T) = vyf
+    A = np.array([
+        [1, 0,    0,      0],
+        [0, 1,    0,      0],
+        [1, T,  T*2,  T*3],
+        [0, 1,  2*T,  3*T**2]
+    ])
+    b = np.array([y0, vy0, yf, vyf])
+    a0, a1, a2, a3 = np.linalg.solve(A, b)
+
+    # Acceleration: y''(t) = 2*a2 + 6*a3*t
+    def acceleration(t):
+        return 2*a2 + 6*a3*t
+
+    def force(t):
+        return M * acceleration(t) + M * g
+
+    # System dynamics: [y, vy]
+    def dynamics(t, y):
+        return [y[1], acceleration(t)]
+
+    # Time vector
+    t_eval = np.linspace(0, T, 500)
+
+    # Solve ODE
+    sol = sci.solve_ivp(dynamics, [0, T], [y0, vy0], t_eval=t_eval)
+
+    # Compute force over time
+    f_t = force(t_eval)
+
+    # Plotting
+    fig, axs = plt.subplots(3, 1, figsize=(10, 10), sharex=True)
+
+    axs[0].plot(sol.t, sol.y[0], label='y(t)')
+    axs[0].set_ylabel('Position (m)')
+    axs[0].legend()
+    axs[0].grid()
+
+    axs[1].plot(sol.t, sol.y[1], label="y'(t)", color='orange')
+    axs[1].set_ylabel('Velocity (m/s)')
+    axs[1].legend()
+    axs[1].grid()
+
+    axs[2].plot(t_eval, f_t, label='f(t)', color='green')
+    axs[2].set_ylabel('Force (N)')
+    axs[2].set_xlabel('Time (s)')
+    axs[2].legend()
+    axs[2].grid()
+
+    plt.tight_layout()
+    plt.show()
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(
