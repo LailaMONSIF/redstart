@@ -1502,7 +1502,7 @@ def _(A_red, B_red, np, plt):
 
     def closed_loop_dynamics_manual(t, x, k3, k4):
         K_theta = np.array([k3, k4])
-        u = -K_theta @ x  
+        u = -K_theta @ x
         dxdt = A_theta @ x + B_theta.flatten() * u
         return dxdt
 
@@ -1514,7 +1514,6 @@ def _(A_red, B_red, np, plt):
         theta_dot = sol.y[1]
         u = - (k3 * theta + k4 * theta_dot)
         return sol.t, theta, u
-
 
     k3_vals = np.linspace(-10, 1, 30)
     k4_vals = np.linspace(-10, 1, 30)
@@ -1537,13 +1536,22 @@ def _(A_red, B_red, np, plt):
     if best_k3 is not None:
         print(f"Suitable gains found: k3 = {best_k3:.3f}, k4 = {best_k4:.3f}")
         t_sim, theta_sim, u_sim = simulate_response_manual(best_k3, best_k4)
+
         plt.plot(t_sim, theta_sim, label=r'$\Delta \theta(t)$')
         plt.plot(t_sim, u_sim, label=r'$\Delta \phi(t)$')
         plt.xlabel('Time (s)')
         plt.ylabel('Angle (rad)')
         plt.title('Closed-loop response with manually tuned gains')
+
+        plt.axhline(y=np.pi/2, color='red', linestyle='--', label=r'$+\pi/2$ limit')
+        plt.axhline(y=-np.pi/2, color='red', linestyle='--', label=r'$-\pi/2$ limit')
+        plt.axvline(x=20, color='purple', linestyle='--', label='Settling time limit (20s)')
+
         plt.legend()
         plt.grid(True)
+
+        plt.xlim(0, t_sim[-1])
+
         plt.show()
     else:
         print("No suitable gains found in search range.")
