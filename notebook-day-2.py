@@ -959,7 +959,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(
         r"""
@@ -1049,7 +1049,6 @@ def _(mo):
     - La poussée est *verticale vers le haut*.
     - Elle compense exactement la gravité.
     - Il n’y a *ni mouvement ni rotation*.
-
     """
     )
     return
@@ -1191,7 +1190,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(
         r"""
@@ -1227,7 +1226,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(A, B, np):
     from numpy.linalg import matrix_rank
 
@@ -1260,7 +1259,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(
         r"""
@@ -1290,7 +1289,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(A, B, matrix_rank, np):
     # Indices of states in reduced system
     indices_states = [0, 3, 2, 5]
@@ -1357,11 +1356,11 @@ app._unparsable_cell(
 
     This behavior occurs because the system is in free fall without any external control input to change its state, so it maintains its initial conditions.
     """,
-    name="_"
+    column=None, disabled=False, hide_code=True, name="_"
 )
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(np, plt):
     # Time vector
     t = np.linspace(0, 5, 500)
@@ -1443,6 +1442,111 @@ def _(mo):
     Is your closed-loop model asymptotically stable?
     """
     )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
+    ### Thought Process
+
+    Since k₁ = k₂ = 0, only the angular subsystem matters:
+
+    \[
+    \dot{x}\theta = A\theta x_\theta + B_\theta u = (A_\theta - B_\theta K_\theta) x_\theta
+    \]
+
+    where:
+
+    - \( x_\theta = \begin{bmatrix} \Delta \theta \\ \Delta \dot{\theta} \end{bmatrix} \)
+  
+    - \( K_\theta = \begin{bmatrix} k_3 & k_4 \end{bmatrix} \)
+
+    We designed a simulation that:
+
+    - Iterates over a grid of k₃ and k₄ values
+    - Checks if the eigenvalues of the closed-loop system have negative real parts
+    - Simulates the response using solve_ivp and checks if:
+    - Δθ(t) converges to zero in ≤ 30s
+    - |Δθ(t)| and |Δϕ(t)| stay below π/2 throughout
+
+    ---
+
+    ### Suitable Gains Found
+    k3 = -1.655
+    k4 = -10.000
+
+    $$
+    K =
+    \begin{bmatrix}
+    0 & 0 & -1.655 & -10
+    \end{bmatrix}
+    \in \mathbb{R}^{4\times 1}
+    $$
+
+    """
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(A_red, B_red, np, plt):
+    from scipy.linalg import eig
+    from scipy.integrate import solve_ivp
+
+    A_theta = A_red[2:4, 2:4]
+    B_theta = B_red[2:4, :]
+
+    x0_theta = np.array([np.pi/4, 0])
+
+    def closed_loop_dynamics_manual(t, x, k3, k4):
+        K_theta = np.array([k3, k4])
+        u = -K_theta @ x  
+        dxdt = A_theta @ x + B_theta.flatten() * u
+        return dxdt
+
+    def simulate_response_manual(k3, k4, t_end=40, dt=0.01):
+        t_span = (0, t_end)
+        t_eval = np.arange(0, t_end, dt)
+        sol = solve_ivp(closed_loop_dynamics_manual, t_span, x0_theta, args=(k3, k4), t_eval=t_eval)
+        theta = sol.y[0]
+        theta_dot = sol.y[1]
+        u = - (k3 * theta + k4 * theta_dot)
+        return sol.t, theta, u
+
+
+    k3_vals = np.linspace(-10, 1, 30)
+    k4_vals = np.linspace(-10, 1, 30)
+
+    best_k3, best_k4 = None, None
+    for k3_i in k3_vals:
+        for k4_i in k4_vals:
+            A_cl_manual = A_theta - B_theta @ np.array([[k3_i, k4_i]])
+            eigvals_manual = eig(A_cl_manual)[0]
+            if np.all(np.real(eigvals_manual) < 0):  # stable
+                t_sim, theta_sim, u_sim = simulate_response_manual(k3_i, k4_i)
+                if (np.max(np.abs(theta_sim)) < np.pi/2) and (np.max(np.abs(u_sim)) < np.pi/2):
+                    settling_indices = np.where(np.abs(theta_sim) < 0.05)[0]
+                    if len(settling_indices) > 0 and t_sim[settling_indices[0]] <= 20:
+                        best_k3, best_k4 = k3_i, k4_i
+                        break
+        if best_k3 is not None:
+            break
+
+    if best_k3 is not None:
+        print(f"Suitable gains found: k3 = {best_k3:.3f}, k4 = {best_k4:.3f}")
+        t_sim, theta_sim, u_sim = simulate_response_manual(best_k3, best_k4)
+        plt.plot(t_sim, theta_sim, label=r'$\Delta \theta(t)$')
+        plt.plot(t_sim, u_sim, label=r'$\Delta \phi(t)$')
+        plt.xlabel('Time (s)')
+        plt.ylabel('Angle (rad)')
+        plt.title('Closed-loop response with manually tuned gains')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+    else:
+        print("No suitable gains found in search range.")
     return
 
 
