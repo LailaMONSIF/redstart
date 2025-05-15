@@ -1547,7 +1547,7 @@ def _(A_red, B_red, np, plt):
         plt.show()
     else:
         print("No suitable gains found in search range.")
-    return
+    return (settling_indices,)
 
 
 @app.cell(hide_code=True)
@@ -1626,7 +1626,7 @@ def _(mo):
 def _(A_red, B_red):
     from scipy.signal import place_poles
 
-    desired_poles = [-2, -2.5, -3, -3.5]
+    desired_poles = [-1, -1.2, -1.5, -1.8]
 
     place_obj = place_poles(A_red, B_red, desired_poles)
     K_pp = place_obj.gain_matrix
@@ -1645,26 +1645,45 @@ def _(A_red, B_red, K_pp, np):
 
 
 @app.cell(hide_code=True)
-def _(A_cl, np, plt):
-    from scipy.signal import StateSpace, lsim
+def _(A_cl, K_pp, np, plt, settling_indices):
+    def _():
+        from scipy.signal import StateSpace, lsim
 
-    t1 = np.linspace(0, 40, 1000)
+        t = np.linspace(0, 40, 1000)
+        x0 = np.array([1.0, 0.0, 0.1, 0.0])  # Initial state
 
-    x0 = np.array([1.0, 0.0, 0.1, 0.0])  # Adjust as needed
+        u = np.zeros_like(t)
+        sys_cl = StateSpace(A_cl, np.zeros((4, 1)), np.eye(4), np.zeros((4, 1)))
 
-    u = np.zeros_like(t1)
+        t, y, _ = lsim(sys_cl, U=u, T=t, X0=x0)
 
-    sys_cl = StateSpace(A_cl, np.zeros((4, 1)), np.eye(4), np.zeros((4, 1)))
+        plt.plot(t, y[:, 0], label='Δx (Lateral position error)')
+        plt.xlabel('Time (s)')
+        plt.ylabel('Δx (m)')
+        plt.title('Closed-loop response of lateral position error')
+        plt.legend()
+        plt.grid()
+        plt.show()
 
-    t1, y1, _ = lsim(sys_cl, U=u, T=t1, X0=x0)
+        # Constraint checks
+        delta_theta = y[:, 2]  # Δθ(t)
+        delta_phi = - (y @ K_pp.T).flatten()  # Control input Δφ(t)
 
-    plt.plot(t1, y1[:, 0], label='Δx (Lateral position error)')
-    plt.xlabel('Time (s)')
-    plt.ylabel('Δx (m)')
-    plt.title('Closed-loop response of lateral position error')
-    plt.legend()
-    plt.grid()
-    plt.show()
+        theta_constraint_satisfied = np.all(np.abs(delta_theta) < np.pi/2)
+        phi_constraint_satisfied = np.all(np.abs(delta_phi) < np.pi/2)
+
+        print(f"Constraint |Δθ(t)| < π/2 satisfied? {theta_constraint_satisfied}")
+        print(f"Constraint |Δφ(t)| < π/2 satisfied? {phi_constraint_satisfied}")
+
+        settling_indicess = np.where(np.abs(y[:, 0]) <= 0.1)[0]
+        if len(settling_indices) > 0:
+            settling_time = t[settling_indicess[0]]
+            print(f"Δx settles within ±0.1 at t = {settling_time:.2f} s")
+        else:
+            return print("Δx does not settle within ±0.1 in the simulation time.")
+
+
+    _()
     return
 
 
