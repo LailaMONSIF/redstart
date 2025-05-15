@@ -1338,30 +1338,21 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-    ## Étude d'une chute libre sans commande
+    ## Linear Model in Free Fall
 
-    ### Contexte
+    On observe ici le comportement latéral du booster sans aucune commande.
 
-    Dans cette simulation, nous étudions le comportement d’un système modélisé (comme une fusée ou un drone) en chute libre. Aucune commande n’est appliquée, c’est-à-dire que le vecteur de commande *u = 0*. Cela revient à observer le système livré à lui-même, sans moteur ou action corrective.
+    ### Hypothèses :
+    - $\phi(t) = 0$
+    - $x(0) = 0$, $\dot{x}(0) = 0$
+    - $\theta(0) = \pi/4$, $\dot{\theta}(0) = 0$
 
-    ### Démarche
+    ### Interprétation :
+    L’inclinaison reste constante, donc le booster continue sa chute en biais.  
+    La position latérale $x(t)$ dérive petit à petit.
 
-    1. Nous utilisons un modèle linéarisé représenté par une matrice *A réduite*, décrivant la dynamique naturelle du système.
-    2. La *matrice B réduite* est présente mais non utilisée, car il n’y a pas de commande.
-    3. Le système est simulé à l’aide de la fonction solve_ivp de SciPy sur un intervalle de temps de 5 secondes.
-    4. Les variables initiales sont :
-       - Position initiale *x₀ = 0*
-       - Inclinaison initiale *θ₀ = π/8* (soit environ 22.5°)
-       - Vitesse initiale et vitesse angulaire nulles.
+    Sans correction active, le système ne revient pas à l’équilibre. Il n’est donc pas stable par lui-même.
 
-    ### Résultats
-
-    - *x(t)* diminue au cours du temps : cela correspond à une chute libre naturelle, donc c'est cohérent.
-    - *θ(t)* reste constant : en l’absence de couple ou d’entrée de commande, il est normal que l’inclinaison ne change pas.
-
-    ### Conclusion
-
-    Cette simulation sans commande nous montre que le système chute en gardant la même orientation. C’est une étape de base indispensable avant d'introduire une commande (comme un contrôle d’asservissement) pour stabiliser ou corriger le comportement du système.
     """
     )
     return
@@ -1374,42 +1365,36 @@ def _():
         import matplotlib.pyplot as plt
         from scipy.integrate import solve_ivp
 
-        # --- Nouvelle matrice A réduite ---
+        # Matrice A_red : dynamique réduite (x, dx, theta, dtheta)
         A_red = np.array([
             [0, 1, 0, 0],
-            [0, 0, -1, 0],
+            [0, 0, -1.0, 0],  # influence de θ sur l'accélération de x
             [0, 0, 0, 1],
             [0, 0, 0, 0]
         ])
 
-        # --- Pas de commande (u = 0) ---
+        # Pas de commande : u = 0
         def model(t, X):
             return A_red @ X
 
-        # --- Conditions initiales ---
-        x0 = 0.0
-        vx0 = 0.0
-        theta0 = np.pi / 8  # Inclinaison initiale ~22.5°
-        omega0 = 0.0
-        X0 = [x0, vx0, theta0, omega0]
-
-        # --- Intégration ---
+        # Conditions initiales : x = 0, dx = 0, theta = 45°, dtheta = 0
+        X0 = [0.0, 0.0, np.pi/4, 0.0]
         t_span = (0, 5)
         t_eval = np.linspace(*t_span, 1000)
         sol = solve_ivp(model, t_span, X0, t_eval=t_eval)
 
-        # --- Résultats ---
+        # Extraire les résultats
         x_t = sol.y[0]
         theta_t = sol.y[2]
 
-        # --- Tracés ---
+        # Tracer les courbes
         plt.figure(figsize=(12, 4))
 
         plt.subplot(1, 2, 1)
         plt.plot(sol.t, x_t, label="x(t)", color="blue")
         plt.xlabel("Temps (s)")
-        plt.ylabel("Position x")
-        plt.title("Évolution de x(t)")
+        plt.ylabel("Position latérale x")
+        plt.title("Évolution de x(t) (sans commande)")
         plt.grid(True)
         plt.legend()
 
@@ -1417,7 +1402,7 @@ def _():
         plt.plot(sol.t, theta_t, label="θ(t)", color="orange")
         plt.xlabel("Temps (s)")
         plt.ylabel("Inclinaison θ (rad)")
-        plt.title("Évolution de θ(t)")
+        plt.title("Évolution de θ(t) (sans commande)")
         plt.grid(True)
         plt.legend()
 
