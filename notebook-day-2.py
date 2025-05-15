@@ -1335,8 +1335,69 @@ def _(mo):
     return
 
 
+app._unparsable_cell(
+    r"""
+    # Linear Model in Free Fall
+
+    We analyze the system under free-fall conditions by setting:
+
+    - \( \phi(t) = 0 \)
+    - \( x(0) = 0 \), \( \dot{x}(0) = 0 \)
+    - \( \theta(0) = \frac{45}{180} \cdot \pi \) radians (i.e., 45 degrees)
+    - \( \dot{\theta}(0) = 0 \)
+
+    Under these conditions, the system is free of external torque input since \( \phi(t) = 0 \). Because the initial angular velocity is zero and no control input acts on the system, the angle \( \theta(t) \) remains constant over time.
+
+    Similarly, since the initial vertical position and velocity are zero and the system is not subjected to any vertical acceleration, the vertical displacement \( y(t) \) remains zero throughout the time interval.
+
+    By simulating the linearized model, we expect to observe:
+
+    - \( \theta(t) \) remains constant at the initial angle (45 degrees).
+    - \( y(t) \) remains at zero.
+
+    This behavior occurs because the system is in free fall without any external control input to change its state, so it maintains its initial conditions.
+    """,
+    name="_"
+)
+
+
 @app.cell
-def _():
+def _(np, plt):
+    # Time vector
+    t = np.linspace(0, 5, 500)
+
+    # Initial angle (radians)
+    theta0 = 45 / 180 * np.pi
+
+    # Theta remains constant since no torque input
+    theta = np.full_like(t, theta0)
+
+    # y remains zero since initial vertical velocity and acceleration are zero
+    y = np.zeros_like(t)
+
+    # Plotting results
+    plt.figure(figsize=(8, 3.5))
+
+    plt.subplot(1, 2, 1)
+    plt.plot(t, theta)
+    plt.title("θ(t) vs Time", fontsize=6)
+    plt.xlabel("Time [s]", fontsize=5)
+    plt.ylabel("θ(t) [rad]", fontsize=5)
+    plt.grid(True)
+    plt.xticks(fontsize=4)
+    plt.yticks(fontsize=4)
+
+    plt.subplot(1, 2, 2)
+    plt.plot(t, y)
+    plt.title("y(t) vs Time", fontsize=6)
+    plt.xlabel("Time [s]", fontsize=5)
+    plt.ylabel("y(t) [m]", fontsize=5)
+    plt.grid(True)
+    plt.xticks(fontsize=4)
+    plt.yticks(fontsize=4)
+
+    plt.tight_layout()
+    plt.show()
     return
 
 
