@@ -959,6 +959,95 @@ def _(mo):
     return
 
 
+app._unparsable_cell(
+    r"""
+    Nous cherchons les *états d’équilibre* du système, c’est-à-dire les configurations où :
+
+    $$
+    \dot{x} = \dot{y} = \dot{\theta} = 0, \quad \ddot{x} = \ddot{y} = \ddot{\theta} = 0
+    $$
+
+    D’après les équations fournies, la dynamique du système est :
+    ### Équations du mouvement
+
+    Le système dynamique du booster est donné par les équations suivantes :
+
+    #### Translation horizontale :
+
+    $$
+    M \ddot{x} = -f \sin(\theta + \phi)
+    $$
+
+    #### Translation verticale :
+
+    $$
+    M \ddot{y} = f \cos(\theta + \phi) - Mg
+    $$
+
+    #### Rotation (inclinaison) :
+
+    $$
+    J \ddot{\theta} = -\ell f \sin(\phi)
+    $$
+
+    ---### Conditions à l'équilibre
+
+    #### 1. Équilibre horizontal
+
+    $$
+    \ddot{x} = 0 \Rightarrow \sin(\theta + \phi) = 0 \Rightarrow \theta + \phi = k\pi
+    $$
+
+    Avec les contraintes \( |\theta| < \frac{\pi}{2} \) et \( |\phi| < \frac{\pi}{2} \), la seule solution acceptable est :
+
+    $$
+    \boxed{\theta + \phi = 0}
+    \quad \Rightarrow \boxed{\phi = -\theta}
+    $$
+
+    ---
+
+    #### 2. Équilibre vertical
+
+    $$
+    \ddot{y} = 0 \Rightarrow f \cos(\theta + \phi) = Mg
+    $$
+
+    En remplaçant \( \theta + \phi = 0 \) :
+
+    $$
+    \cos(0) = 1 \Rightarrow \boxed{f = Mg}
+    $$
+
+    ---#### 3. Équilibre de rotation
+
+    $$
+    \ddot{\theta} = 0 \Rightarrow \sin(\phi) = 0 \Rightarrow \boxed{\phi = 0}
+    \quad \Rightarrow \boxed{\theta = 0}
+    $$
+
+    ---
+
+
+
+    Le système possède un *équilibre unique* (sous les hypothèses \( f > 0 \), \( |\theta| < \frac{\pi}{2} \), \( |\phi| < \frac{\pi}{2} \)) :
+
+    $$
+    \boxed{
+    \theta = 0, \quad \phi = 0, \quad f = Mg
+    }
+    $$
+
+    Dans cet état :
+    - Le booster est *parfaitement vertical*.
+    - La poussée est *verticale vers le haut*.
+    - Elle compense exactement la gravité.
+    - Il n’y a *ni mouvement ni rotation*.
+    """,
+    name="_"
+)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(
