@@ -959,8 +959,10 @@ def _(mo):
     return
 
 
-app._unparsable_cell(
-    r"""
+@app.cell
+def _(mo):
+    mo.md(
+        r"""
     Nous cherchons les *états d’équilibre* du système, c’est-à-dire les configurations où :
 
     $$
@@ -1046,14 +1048,11 @@ app._unparsable_cell(
     - Le booster est *parfaitement vertical*.
     - La poussée est *verticale vers le haut*.
     - Elle compense exactement la gravité.
-    - Il n’y a *ni mouvement ni rotation*.
+    - Il n’y a *ni mouvement ni rotation*.
 
-
-
-
-    """,
-    name="_"
-)
+    """
+    )
+    return
 
 
 @app.cell(hide_code=True)
@@ -1333,6 +1332,11 @@ def _(mo):
     $x(0)=0$, $\dot{x}(0)=0$, $\theta(0) = 45 / 180  \times \pi$  and $\dot{\theta}(0) =0$. What do you see? How do you explain it?
     """
     )
+    return
+
+
+@app.cell
+def _():
     return
 
 
