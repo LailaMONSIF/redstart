@@ -1108,6 +1108,78 @@ def _(mo):
     return
 
 
+@app.cell
+def _(mo):
+    mo.md(
+        r"""
+    We express the linearized system dynamics in the standard state-space form:
+
+    \[
+    \dot{\mathbf{x}} = A \mathbf{x} + B \mathbf{u}
+    \]
+
+    where
+
+    - \(\mathbf{x} = [\Delta x, \Delta y, \Delta \theta, \Delta \dot{x}, \Delta \dot{y}, \Delta \dot{\theta}]^T\) is the state error vector around the equilibrium,
+    - \(\mathbf{u} = [\Delta f, \Delta \phi]^T\) is the input error vector.
+
+    The matrices \(A\) and \(B\) capture the system dynamics and how inputs affect accelerations respectively.
+
+    ---
+
+    - Gravity \(g\), mass \(M\), moment of inertia \(J\), and lever arm \(l\) are constants.
+    - The linearized equations show coupling between orientation and accelerations.
+    - The resulting matrices \(A\) and \(B\) are:
+
+    \[
+    A = 
+    \begin{bmatrix}
+    0 & 0 & 0 & 1 & 0 & 0 \\
+    0 & 0 & 0 & 0 & 1 & 0 \\
+    0 & 0 & 0 & 0 & 0 & 1 \\
+    0 & 0 & -g & 0 & 0 & 0 \\
+    0 & 0 & 0 & 0 & 0 & 0 \\
+    0 & 0 & 0 & 0 & 0 & 0
+    \end{bmatrix}
+    ,
+    \quad
+    B = 
+    \begin{bmatrix}
+    0 & 0 \\
+    0 & 0 \\
+    0 & 0 \\
+    0 & -g \\
+    1/M & 0 \\
+    0 & -\frac{l g}{J}
+    \end{bmatrix}
+    \]
+    """
+    )
+    return
+
+
+@app.cell
+def _(J, M, g, l, np):
+    A = np.array([
+        [0, 0, 0, 1, 0, 0],                # d(Δx)/dt = Δvx
+        [0, 0, 0, 0, 1, 0],                # d(Δy)/dt = Δvy
+        [0, 0, 0, 0, 0, 1],                # d(Δθ)/dt = Δω
+        [0, 0, -g, 0, 0, 0],               # d(Δvx)/dt = -g Δθ
+        [0, 0, 0, 0, 0, 0],                # d(Δvy)/dt = (1/M) Δf (input)
+        [0, 0, 0, 0, 0, 0]                 # d(Δω)/dt = (-l g / J) Δφ (input)
+    ])
+
+    B = np.array([
+        [0, 0],                            # Δf, Δφ don't affect position directly
+        [0, 0],
+        [0, 0],
+        [0, -g],                           # Δφ affects Δvx through -g
+        [1/M, 0],                          # Δf affects Δvy
+        [0, -l * g / J]                    # Δφ affects angular accel
+    ])
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(
