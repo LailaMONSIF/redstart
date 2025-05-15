@@ -1177,7 +1177,7 @@ def _(J, M, g, l, np):
         [1/M, 0],                          # Δf affects Δvy
         [0, -l * g / J]                    # Δφ affects angular accel
     ])
-    return
+    return A, B
 
 
 @app.cell(hide_code=True)
@@ -1187,6 +1187,30 @@ def _(mo):
     ## 🧩 Stability
 
     Is the generic equilibrium asymptotically stable?
+    """
+    )
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(
+        r"""
+    Nous analysons la stabilité de l’équilibre générique à partir de la matrice linéarisée \( A \). Celle-ci contient plusieurs lignes de zéros et aucun terme d’amortissement ou de dissipation. En particulier :
+
+    - Il existe *au moins une valeur propre nulle*, liée aux équations de translation verticale et de rotation.
+    - Il n’y a *aucune valeur propre avec partie réelle strictement négative*.
+
+    ---
+
+
+
+    L’équilibre *n’est pas asymptotiquement stable*.
+
+    Il est *au mieux marginalement stable*, ce qui signifie que :
+
+    - Une petite perturbation ne s’éteindra pas d’elle-même.
+    - Le système *ne revient pas naturellement à l’équilibre sans correction active*.
     """
     )
     return
@@ -1204,6 +1228,24 @@ def _(mo):
     return
 
 
+@app.cell
+def _(A, B, np):
+    from numpy.linalg import matrix_rank
+
+    # Construct the controllability matrix
+    n = A.shape[0]
+    controllability_matrix = B
+    for i in range(1, n):
+        controllability_matrix = np.hstack((controllability_matrix, np.linalg.matrix_power(A, i) @ B))
+
+    # Check rank
+    rank = matrix_rank(controllability_matrix)
+
+    print(f"Rank of controllability matrix: {rank}")
+    print(f"System is controllable: {rank == n}")
+    return (matrix_rank,)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(
@@ -1216,6 +1258,68 @@ def _(mo):
     Check the controllability of this new system.
     """
     )
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(
+        r"""
+    Focusing on the lateral position \(x\) and tilt \(\theta\) with their velocities, and controlling only the thrust angle \(\phi\) (with fixed thrust \(f = Mg\)), the reduced state vector is:
+
+    \[
+    \mathbf{x}_{red} = [\Delta x, \Delta \dot{x}, \Delta \theta, \Delta \dot{\theta}]^T
+    \]
+
+    and input:
+
+    \[
+    u = \Delta \phi
+    \]
+
+    The reduced system matrices \(A_{red}\) and \(B_{red}\) are extracted from the full matrices by selecting the relevant states and input.
+
+    We then check the controllability of this reduced system using the controllability matrix:
+
+    \[
+    \mathcal{C}{red} = \begin{bmatrix} B{red} & A_{red} B_{red} & A_{red}^2 B_{red} & \cdots \end{bmatrix}
+    \]
+
+    If \(\operatorname{rank}(\mathcal{C}_{red}) = 4\) (the dimension of the reduced state), the system remains controllable under this reduced setting.
+    """
+    )
+    return
+
+
+@app.cell
+def _(A, B, matrix_rank, np):
+    # Indices of states in reduced system
+    indices_states = [0, 3, 2, 5]
+    # Index of input phi (second input)
+    index_phi = 1
+
+    # Extract reduced A matrix
+    A_red = A[np.ix_(indices_states, indices_states)]
+
+    # Extract reduced B matrix (only column for phi)
+    B_red = B[indices_states, index_phi].reshape(-1, 1)
+
+    print("Reduced A matrix:")
+    print(A_red)
+
+    print("\nReduced B matrix:")
+    print(B_red)
+
+    # Check controllability of reduced system
+    n_red = A_red.shape[0]
+    controllability_matrix_red = B_red
+    for k in range(1, n_red):
+        controllability_matrix_red = np.hstack((controllability_matrix_red, np.linalg.matrix_power(A_red, k) @ B_red))
+
+    rank_red = matrix_rank(controllability_matrix_red)
+
+    print(f"\nRank of reduced controllability matrix: {rank_red}")
+    print(f"Reduced system controllable: {rank_red == n_red}")
     return
 
 
