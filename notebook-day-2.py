@@ -1334,69 +1334,98 @@ def _(mo):
     return
 
 
-app._unparsable_cell(
-    r"""
-    # Linear Model in Free Fall
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
+    ## Étude d'une chute libre sans commande
 
-    We analyze the system under free-fall conditions by setting:
+    ### Contexte
 
-    - \( \phi(t) = 0 \)
-    - \( x(0) = 0 \), \( \dot{x}(0) = 0 \)
-    - \( \theta(0) = \frac{45}{180} \cdot \pi \) radians (i.e., 45 degrees)
-    - \( \dot{\theta}(0) = 0 \)
+    Dans cette simulation, nous étudions le comportement d’un système modélisé (comme une fusée ou un drone) en chute libre. Aucune commande n’est appliquée, c’est-à-dire que le vecteur de commande *u = 0*. Cela revient à observer le système livré à lui-même, sans moteur ou action corrective.
 
-    Under these conditions, the system is free of external torque input since \( \phi(t) = 0 \). Because the initial angular velocity is zero and no control input acts on the system, the angle \( \theta(t) \) remains constant over time.
+    ### Démarche
 
-    Similarly, since the initial vertical position and velocity are zero and the system is not subjected to any vertical acceleration, the vertical displacement \( y(t) \) remains zero throughout the time interval.
+    1. Nous utilisons un modèle linéarisé représenté par une matrice *A réduite*, décrivant la dynamique naturelle du système.
+    2. La *matrice B réduite* est présente mais non utilisée, car il n’y a pas de commande.
+    3. Le système est simulé à l’aide de la fonction solve_ivp de SciPy sur un intervalle de temps de 5 secondes.
+    4. Les variables initiales sont :
+       - Position initiale *x₀ = 0*
+       - Inclinaison initiale *θ₀ = π/8* (soit environ 22.5°)
+       - Vitesse initiale et vitesse angulaire nulles.
 
-    By simulating the linearized model, we expect to observe:
+    ### Résultats
 
-    - \( \theta(t) \) remains constant at the initial angle (45 degrees).
-    - \( y(t) \) remains at zero.
+    - *x(t)* diminue au cours du temps : cela correspond à une chute libre naturelle, donc c'est cohérent.
+    - *θ(t)* reste constant : en l’absence de couple ou d’entrée de commande, il est normal que l’inclinaison ne change pas.
 
-    This behavior occurs because the system is in free fall without any external control input to change its state, so it maintains its initial conditions.
-    """,
-    column=None, disabled=False, hide_code=True, name="_"
-)
+    ### Conclusion
+
+    Cette simulation sans commande nous montre que le système chute en gardant la même orientation. C’est une étape de base indispensable avant d'introduire une commande (comme un contrôle d’asservissement) pour stabiliser ou corriger le comportement du système.
+    """
+    )
+    return
 
 
 @app.cell(hide_code=True)
-def _(np, plt):
-    # Time vector
-    t = np.linspace(0, 5, 500)
+def _():
+    def _():
+        import numpy as np
+        import matplotlib.pyplot as plt
+        from scipy.integrate import solve_ivp
 
-    # Initial angle (radians)
-    theta0 = 45 / 180 * np.pi
+        # --- Nouvelle matrice A réduite ---
+        A_red = np.array([
+            [0, 1, 0, 0],
+            [0, 0, -1, 0],
+            [0, 0, 0, 1],
+            [0, 0, 0, 0]
+        ])
 
-    # Theta remains constant since no torque input
-    theta = np.full_like(t, theta0)
+        # --- Pas de commande (u = 0) ---
+        def model(t, X):
+            return A_red @ X
 
-    # y remains zero since initial vertical velocity and acceleration are zero
-    y = np.zeros_like(t)
+        # --- Conditions initiales ---
+        x0 = 0.0
+        vx0 = 0.0
+        theta0 = np.pi / 8  # Inclinaison initiale ~22.5°
+        omega0 = 0.0
+        X0 = [x0, vx0, theta0, omega0]
 
-    # Plotting results
-    plt.figure(figsize=(8, 3.5))
+        # --- Intégration ---
+        t_span = (0, 5)
+        t_eval = np.linspace(*t_span, 1000)
+        sol = solve_ivp(model, t_span, X0, t_eval=t_eval)
 
-    plt.subplot(1, 2, 1)
-    plt.plot(t, theta)
-    plt.title("θ(t) vs Time", fontsize=6)
-    plt.xlabel("Time [s]", fontsize=5)
-    plt.ylabel("θ(t) [rad]", fontsize=5)
-    plt.grid(True)
-    plt.xticks(fontsize=4)
-    plt.yticks(fontsize=4)
+        # --- Résultats ---
+        x_t = sol.y[0]
+        theta_t = sol.y[2]
 
-    plt.subplot(1, 2, 2)
-    plt.plot(t, y)
-    plt.title("y(t) vs Time", fontsize=6)
-    plt.xlabel("Time [s]", fontsize=5)
-    plt.ylabel("y(t) [m]", fontsize=5)
-    plt.grid(True)
-    plt.xticks(fontsize=4)
-    plt.yticks(fontsize=4)
+        # --- Tracés ---
+        plt.figure(figsize=(12, 4))
 
-    plt.tight_layout()
-    plt.show()
+        plt.subplot(1, 2, 1)
+        plt.plot(sol.t, x_t, label="x(t)", color="blue")
+        plt.xlabel("Temps (s)")
+        plt.ylabel("Position x")
+        plt.title("Évolution de x(t)")
+        plt.grid(True)
+        plt.legend()
+
+        plt.subplot(1, 2, 2)
+        plt.plot(sol.t, theta_t, label="θ(t)", color="orange")
+        plt.xlabel("Temps (s)")
+        plt.ylabel("Inclinaison θ (rad)")
+        plt.title("Évolution de θ(t)")
+        plt.grid(True)
+        plt.legend()
+
+        plt.tight_layout()
+        return plt.show()
+
+
+    _()
     return
 
 
