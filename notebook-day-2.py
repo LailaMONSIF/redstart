@@ -1073,6 +1073,32 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
+    We define error variables around the equilibrium point \( \theta = 0, \phi = 0, f = Mg \):
+
+    - \( \Delta x = x - x_e \)
+    - \( \Delta y = y - y_e \)
+    - \( \Delta \theta = \theta \)
+    - \( \Delta f = f - Mg \)
+    - \( \Delta \phi = \phi \)
+
+    ### Linearized Equations of Motion:
+
+    \[
+    \begin{aligned}
+    \ddot{\Delta x} &= -g (\Delta \theta + \Delta \phi) \\
+    \ddot{\Delta y} &= \frac{1}{M} \Delta f \\
+    \ddot{\Delta \theta} &= -\frac{\ell g}{J} \Delta \phi
+    \end{aligned}
+    \]
+    """
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
     ## 🧩 Standard Form
 
     What are the matrices $A$ and $B$ associated to this linear model in standard form?
