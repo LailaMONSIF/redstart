@@ -1821,5 +1821,114 @@ def _(mo):
     return
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
+    ### Validation sur le modèle non-linéaire
+
+    On teste ici les contrôleurs précédemment conçus (**pole placement** et **LQR**) sur le modèle complet non-linéaire du booster.
+
+    ### Critères à respecter :
+    - $\theta(t)$ doit converger vers 0 sans dépasser $\pm \pi/2$
+    - La commande $\phi(t)$ doit rester physiquement réaliste ($|\phi(t)| < \pi/2$)
+    - Pour le contrôleur LQR, on veut aussi que $x(t)$ revienne à zéro
+
+    ### Que vérifie-t-on ?
+    Si le contrôleur conçu sur le modèle **linéarisé** fonctionne aussi sur le **vrai modèle**, c’est qu’il est robuste. Sinon… retour au tuning 
+
+    """
+    )
+    return
+
+
+@app.cell
+def _(M, g, np, plt, redstart_solve):
+    def validate_on_nonlinear(K, label="Pole Placement"):
+        t_span = [0.0, 20.0]
+        y0 = [0.0, 0.0, 0.0, 0.0, np.pi/4, 0.0]  # état initial : inclinaison 45°
+
+        def f_phi_control(t, y):
+            state_red = np.array([y[0], y[1], y[4], y[5]])  # [x, dx, theta, dtheta]
+            delta_phi = -K @ state_red
+            delta_phi = np.clip(delta_phi.item(), -np.pi/2, np.pi/2)  # convertir en scalaire
+            return np.array([M * g, delta_phi])  # poussée constante, angle variable
+
+        sol = redstart_solve(t_span, y0, f_phi_control)
+        t = np.linspace(t_span[0], t_span[1], 1000)
+        states = sol(t)
+
+        x = states[0]
+        theta = states[4]
+        phi = np.array([
+            (-K @ np.array([states[0][i], states[1][i], states[4][i], states[5][i]])).item()
+            for i in range(len(t))
+        ])
+        phi = np.clip(phi, -np.pi/2, np.pi/2)
+
+        # Tracés
+        plt.figure(figsize=(12, 5))
+
+        plt.subplot(1, 3, 1)
+        plt.plot(t, x, label="x(t)")
+        plt.title("Position latérale x(t)")
+        plt.grid()
+        plt.legend()
+
+        plt.subplot(1, 3, 2)
+        plt.plot(t, theta, label="θ(t)")
+        plt.title("Inclinaison θ(t)")
+        plt.axhline(np.pi/2, ls="--", color="red")
+        plt.axhline(-np.pi/2, ls="--", color="red")
+        plt.grid()
+        plt.legend()
+
+        plt.subplot(1, 3, 3)
+        plt.plot(t, phi, label="φ(t)")
+        plt.title("Commande φ(t)")
+        plt.axhline(np.pi/2, ls="--", color="red")
+        plt.axhline(-np.pi/2, ls="--", color="red")
+        plt.grid()
+        plt.legend()
+
+        plt.suptitle(f"Validation du contrôleur ({label})")
+        plt.tight_layout()
+        plt.show()
+
+    return (validate_on_nonlinear,)
+
+
+@app.cell
+def _(np):
+    from scipy.linalg import solve_continuous_are
+
+    # Renommage pour éviter les conflits
+    A_lqr = np.array([[0, 1, 0, 0],
+                      [0, 0, -9.81, 0],
+                      [0, 0, 0, 1],
+                      [0, 0, 14.7, 0]])
+
+    B_lqr = np.array([[0],
+                      [0],
+                      [0],
+                      [1]])
+
+    Q = np.diag([0, 0, 100, 1])
+    R_lqr = np.array([[1]])
+
+    # Résolution de Riccati et gain
+    P = solve_continuous_are(A_lqr, B_lqr, Q, R_lqr)
+    K_oc = np.linalg.inv(R_lqr) @ B_lqr.T @ P
+
+    return (K_oc,)
+
+
+@app.cell
+def _(K_oc, K_pp, validate_on_nonlinear):
+    validate_on_nonlinear(K_pp, label="Pole Placement")
+    validate_on_nonlinear(K_oc, label="LQR")
+    return
+
+
 if __name__ == "__main__":
     app.run()
