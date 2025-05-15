@@ -1518,7 +1518,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(A_red, B_red):
     from scipy.signal import place_poles
 
@@ -1532,7 +1532,7 @@ def _(A_red, B_red):
     return (K_pp,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(A_red, B_red, K_pp, np):
     A_cl = A_red - B_red @ K_pp
     eigvals = np.linalg.eigvals(A_cl)
@@ -1540,7 +1540,7 @@ def _(A_red, B_red, K_pp, np):
     return (A_cl,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(A_cl, np, plt):
     from scipy.signal import StateSpace, lsim
 
@@ -1575,6 +1575,92 @@ def _(mo):
     Explain how you find the proper design parameters!
     """
     )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
+    ## Conception du Contrôleur Optimal (LQR)
+
+    L’objectif est de stabiliser le système linéarisé autour de l’état d’équilibre avec :
+
+    - \(\Delta \theta(0) = \frac{45}{180} \pi\) rad
+    - \(\Delta \dot{\theta}(0) = 0\)
+    - \(\Delta x(0) = 0\), \(\Delta \dot{x}(0) = 0\)
+
+    La condition est que \(\Delta \theta(t)\) tende vers zéro en environ 20 secondes, tout en respectant :
+
+    - \(|\Delta \theta(t)| < \frac{\pi}{2}\)
+    - \(|\Delta \varphi(t)| < \frac{\pi}{2}\)
+
+    Le drift sur \(\Delta x(t)\) n’est pas pris en compte.
+    """
+    )
+    return
+
+
+@app.cell
+def _(np, plt):
+    def LQR():
+        from scipy.linalg import solve_continuous_are
+
+        A = np.array([[0, 1, 0, 0],
+                      [0, 0, -9.81, 0],
+                      [0, 0, 0, 1],
+                      [0, 0, 14.7, 0]])
+
+        B = np.array([[0],
+                      [0],
+                      [0],
+                      [1]])
+
+        Q = np.diag([0, 0, 100, 1])
+        R = np.array([[1]])
+
+        P = solve_continuous_are(A, B, Q, R)
+        K_oc = np.linalg.inv(R) @ B.T @ P
+
+        A_cl = A - B @ K_oc
+
+        x0 = np.array([0, 0, 45/180*np.pi, 0])
+        dt = 0.01
+        T = 25
+        time = np.arange(0, T, dt)
+        x = np.zeros((4, len(time)))
+        x[:, 0] = x0
+
+        for i in range(1, len(time)):
+            x[:, i] = x[:, i-1] + dt * (A_cl @ x[:, i-1])
+
+        u = -K_oc @ x
+
+        plt.figure(figsize=(10,4))
+
+        plt.subplot(1,2,1)
+        plt.plot(time, x[2,:])
+        plt.axhline(np.pi/2, color='r', linestyle='--')
+        plt.axhline(-np.pi/2, color='r', linestyle='--')
+        plt.xlabel('Temps (s)')
+        plt.ylabel('Angle Δθ (rad)')
+        plt.title('Évolution de Δθ(t)')
+        plt.grid(True)
+
+        plt.subplot(1,2,2)
+        plt.plot(time, u.flatten())
+        plt.axhline(np.pi/2, color='r', linestyle='--')
+        plt.axhline(-np.pi/2, color='r', linestyle='--')
+        plt.xlabel('Temps (s)')
+        plt.ylabel('Commande Δφ (rad)')
+        plt.title('Évolution de la commande Δφ(t)')
+        plt.grid(True)
+
+        plt.tight_layout()
+        return plt.show()
+
+
+    LQR()
     return
 
 
