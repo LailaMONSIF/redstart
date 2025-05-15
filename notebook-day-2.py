@@ -1319,7 +1319,7 @@ def _(A, B, matrix_rank, np):
 
     print(f"\nRank of reduced controllability matrix: {rank_red}")
     print(f"Reduced system controllable: {rank_red == n_red}")
-    return
+    return A_red, B_red
 
 
 @app.cell(hide_code=True)
@@ -1485,6 +1485,82 @@ def _(mo):
     Explain how you find the proper design parameters!
     """
     )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
+    To design the feedback gain matrix \( K_{pp} \) for the lateral dynamics, we use pole assignment on the reduced closed-loop system:
+
+    \[
+    A_{cl} = A_{red} - B_{red} K_{pp}
+    \]
+
+    We initially aimed for poles that would ensure *asymptotic stability* and convergence of the lateral position error \(\Delta x(t)\) within approximately 20 seconds. However, after testing different values, we found that choosing faster poles such as:
+
+    \[
+    \texttt{desired\_poles} = [-2, -2.5, -3, -3.5]
+    \]
+
+    led to a significantly improved transient response. Using the place_poles method, we computed the gain matrix \( K_{pp} \) to place the poles at these locations.
+
+    The resulting control law:
+
+    \[
+    \Delta \phi(t) = -K_{pp} \mathbf{x}_{red}(t)
+    \]
+
+    produced a closed-loop response where \(\Delta x(t)\) starts at 1 m, briefly overshoots (up to ~1.2 m at 1 s), and then converges to zero within approximately 4 seconds — much faster than the original target, while maintaining stability and good performance.
+    """
+    )
+    return
+
+
+@app.cell
+def _(A_red, B_red):
+    from scipy.signal import place_poles
+
+    desired_poles = [-2, -2.5, -3, -3.5]
+
+    place_obj = place_poles(A_red, B_red, desired_poles)
+    K_pp = place_obj.gain_matrix
+
+    print("Pole placement gain matrix K_pp:")
+    print(K_pp)
+    return (K_pp,)
+
+
+@app.cell
+def _(A_red, B_red, K_pp, np):
+    A_cl = A_red - B_red @ K_pp
+    eigvals = np.linalg.eigvals(A_cl)
+    print("Closed-loop eigenvalues:", eigvals)
+    return (A_cl,)
+
+
+@app.cell
+def _(A_cl, np, plt):
+    from scipy.signal import StateSpace, lsim
+
+    t1 = np.linspace(0, 40, 1000)
+
+    x0 = np.array([1.0, 0.0, 0.1, 0.0])  # Adjust as needed
+
+    u = np.zeros_like(t1)
+
+    sys_cl = StateSpace(A_cl, np.zeros((4, 1)), np.eye(4), np.zeros((4, 1)))
+
+    t1, y1, _ = lsim(sys_cl, U=u, T=t1, X0=x0)
+
+    plt.plot(t1, y1[:, 0], label='Δx (Lateral position error)')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Δx (m)')
+    plt.title('Closed-loop response of lateral position error')
+    plt.legend()
+    plt.grid()
+    plt.show()
     return
 
 
