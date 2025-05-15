@@ -990,7 +990,9 @@ app._unparsable_cell(
     J \ddot{\theta} = -\ell f \sin(\phi)
     $$
 
-    ---### Conditions à l'équilibre
+    ---
+
+    ### Conditions à l'équilibre
 
     #### 1. Équilibre horizontal
 
@@ -1019,7 +1021,9 @@ app._unparsable_cell(
     \cos(0) = 1 \Rightarrow \boxed{f = Mg}
     $$
 
-    ---#### 3. Équilibre de rotation
+    ---
+
+    #### 3. Équilibre de rotation
 
     $$
     \ddot{\theta} = 0 \Rightarrow \sin(\phi) = 0 \Rightarrow \boxed{\phi = 0}
@@ -1043,6 +1047,10 @@ app._unparsable_cell(
     - La poussée est *verticale vers le haut*.
     - Elle compense exactement la gravité.
     - Il n’y a *ni mouvement ni rotation*.
+
+
+
+
     """,
     name="_"
 )
