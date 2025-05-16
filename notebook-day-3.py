@@ -1755,7 +1755,6 @@ def _(mo):
     - À une **distance de \( \ell/3 \)** du centre de masse,
     - Dans une direction **perpendiculaire à l’axe du booster**,
     - Et orienté vers l’**extrémité supérieure** (dans le sens opposé à l’inclinaison).
-
     """
     )
     return

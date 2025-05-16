@@ -1687,6 +1687,83 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
+def _():
+    def plot_h_from_cm():
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        # Paramètres
+        ell = 1.0
+        theta = np.pi / 4  # 45 degrés
+        x, y = 2.0, 1.0     # centre de masse (x, y)
+
+        # Calcul du point h
+        hx = x - (ell / 3) * np.sin(theta)
+        hy = y + (ell / 3) * np.cos(theta)
+
+        # Calcul des extrémités du booster (longueur totale = ell)
+        dx = (ell / 2) * np.sin(theta)
+        dy = -(ell / 2) * np.cos(theta)
+
+        x1, y1 = x - dx, y - dy
+        x2, y2 = x + dx, y + dy
+
+        # Tracé
+        plt.figure(figsize=(6, 6))
+        plt.plot([x1, x2], [y1, y2], 'b-', label='Booster')
+        plt.plot(x, y, 'ko', label='Centre de masse (x, y)')
+        plt.plot(hx, hy, 'ro', label='Point h')
+        plt.text(x, y, '  (x, y)', fontsize=10, verticalalignment='bottom')
+        plt.text(hx, hy, '  h', fontsize=10, color='r', verticalalignment='bottom')
+
+        plt.axis('equal')
+        plt.grid(True)
+        plt.legend()
+        plt.xlabel("x")
+        plt.ylabel("y")
+        plt.title("Interprétation géométrique du point h")
+        plt.show()
+    plot_h_from_cm()
+    return
+
+
+app._unparsable_cell(
+    r"""
+    ##Interprétation géométrique du point *h*
+
+    On a :
+
+    \[
+    h = \begin{bmatrix}
+    x - \frac{\ell}{3} \sin \theta \\
+    y + \frac{\ell}{3} \cos \theta
+    \end{bmatrix}
+    \]
+
+    où :
+
+    - \((x, y)\) est le **centre de masse** du booster,
+    - \(\ell\) est la **demi longueur totale** du booster,
+    - \(\theta\) est l'angle d'inclinaison du booster.
+
+
+    Le point \( h \) n’est pas au centre du booster, mais **décalé** par rapport à lui :
+
+    \[
+    \vec{v} = -\frac{\ell}{3} \sin \theta \cdot \vec{i} + \frac{\ell}{3} \cos \theta \cdot \vec{j}
+    \]
+
+    Cela signifie que \( h \) est situé :
+
+    - À une **distance de \( \ell/3 \)** du centre de masse,
+    - Dans une direction **perpendiculaire à l’axe du booster**,
+    - Et orienté vers l’**extrémité supérieure** (dans le sens opposé à l’inclinaison).
+    """,
+    column=None, disabled=False, hide_code=True, name="_"
+)
+
+
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(
         r"""
