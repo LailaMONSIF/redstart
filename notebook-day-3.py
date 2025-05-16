@@ -1681,7 +1681,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     def plot_h_from_cm():
         import numpy as np
@@ -1722,7 +1722,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(
         r"""
@@ -2108,6 +2108,39 @@ def _(mo):
     that returns a function `fun` such that `fun(t)` is a value of `x, dx, y, dy, theta, dtheta, z, dz, f, phi` at time `t` that match the initial and final values provided as arguments to `compute`.
     """
     )
+    return
+
+
+@app.cell
+def _(np):
+    def compute(
+        x_0, dx_0, y_0, dy_0, theta_0, dtheta_0, z_0, dz_0,
+        x_tf, dx_tf, y_tf, dy_tf, theta_tf, dtheta_tf, z_tf, dz_tf,
+        tf
+    ):
+        def cubic_poly(t, p0, dp0, pf, dpf):
+            """Returns position and velocity at time t using cubic interpolation."""
+            a0 = p0
+            a1 = dp0
+            a2 = (3 * (pf - p0) - (2 * dp0 + dpf) * tf) / tf**2
+            a3 = (2 * (p0 - pf) + (dp0 + dpf) * tf) / tf**3
+            pos = a0 + a1 * t + a2 * t*2 + a3 * t*3
+            vel = a1 + 2 * a2 * t + 3 * a3 * t**2
+            return pos, vel
+
+        def fun(t):
+            x, dx = cubic_poly(t, x_0, dx_0, x_tf, dx_tf)
+            y, dy = cubic_poly(t, y_0, dy_0, y_tf, dy_tf)
+            theta, dtheta = cubic_poly(t, theta_0, dtheta_0, theta_tf, dtheta_tf)
+            z, dz = cubic_poly(t, z_0, dz_0, z_tf, dz_tf)
+
+            # Example f and phi functions (placeholders; adjust as needed)
+            f = np.sin(t)
+            phi = np.cos(t)
+
+            return x, dx, y, dy, theta, dtheta, z, dz, f, phi
+
+        return fun
     return
 
 
