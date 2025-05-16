@@ -1681,6 +1681,81 @@ def _(mo):
     return
 
 
+@app.function
+def plot_geometric_interpretation_of_h():
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    # Constantes
+    l = 1.0  # demi-longueur du booster
+    theta = np.pi / 6  # 30°
+    x, y = 0.0, 5.0  # position du centre de masse
+
+    # Centre, base (h), sommet
+    dx = l * np.sin(theta)
+    dy = l * np.cos(theta)
+    xc, yc = x, y
+    xf, yf = x - (l/3) * np.sin(theta), y + (l/3) * np.cos(theta)
+    xt, yt = x + dx, y - dy
+
+    # Affichage
+    fig, ax = plt.subplots(figsize=(6, 6))
+    ax.plot([xt, xc, xf], [yt, yc, yf], 'k-', lw=4, label="Booster (axe)")
+    ax.plot(xc, yc, 'bo', label="Center of Mass (x, y)")
+    ax.plot(xf, yf, 'ro', label="Output $h$")
+
+    # Flèche direction vers h
+    ax.arrow(xc, yc, xf - xc, yf - yc, head_width=0.05, color="red", length_includes_head=True)
+
+    ax.set_xlim(-1.5, 1.5)
+    ax.set_ylim(3.5, 6.5)
+    ax.set_aspect("equal")
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+    ax.set_title("Geometric Interpretation of $h$")
+    ax.legend()
+    ax.grid(True)
+    plt.show()
+
+
+@app.cell
+def _():
+    plot_geometric_interpretation_of_h()
+    return
+
+
+app._unparsable_cell(
+    r"""
+    Geometric Interpretation of the Output \( h \)
+
+    The output \( h \in \mathbb{R}^2 \) is defined as:
+
+    \[
+    h = 
+    \begin{bmatrix}
+    x - \dfrac{\ell}{3} \sin\theta \\
+    y + \dfrac{\ell}{3} \cos\theta
+    \end{bmatrix}
+    \]
+
+    ---
+
+    - \( (x, y) \) is the *center of mass* of the booster.
+    - \( \theta \) is the tilt of the booster.
+    - The point \( h \) corresponds to a position *\(\ell/3\)* below the center of mass, *along the body axis*.
+    - Geometrically, \( h \) represents the *base* of the booster, i.e. the *point where the force \( (f_x, f_y) \)* is applied.
+
+    ---
+
+
+    - The output \( h \) is used to *project the force direction* into global coordinates.
+    - It is computed via a rigid-body translation: going down by \( \ell/3 \) from the center of mass along the angle \( \theta \).
+    - In the figure, the point \( h \) is shown in red, below the center of mass (blue), connected by the booster axis (black).
+    """,
+    column=None, disabled=False, hide_code=True, name="_"
+)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(
