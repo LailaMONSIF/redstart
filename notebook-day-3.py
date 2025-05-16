@@ -1693,6 +1693,85 @@ def _(mo):
     return
 
 
+app._unparsable_cell(
+    r"""
+    We are given the output:
+
+    \[
+    h = 
+    \begin{bmatrix}
+    x - \frac{\ell}{3} \sin\theta \\
+    y + \frac{\ell}{3} \cos\theta
+    \end{bmatrix}
+    \]
+
+    ---
+
+    #### First Derivative \( \dot{h} \)
+
+
+    \[
+    \dot{h} =
+    \begin{bmatrix}
+    \dot{x} - \frac{\ell}{3} \cos\theta \, \dot{\theta} \\
+    \dot{y} - \frac{\ell}{3} \sin\theta \, \dot{\theta}
+    \end{bmatrix}
+    \]
+
+    ---
+
+    #### Second Derivative \( \ddot{h} \)
+
+    \[
+    \ddot{h} =
+    \begin{bmatrix}
+    \ddot{x} + \frac{\ell}{3} (\sin\theta \, \dot{\theta}^2 - \cos\theta \, \ddot{\theta}) \\
+    \ddot{y} - \frac{\ell}{3} (\cos\theta \, \dot{\theta}^2 + \sin\theta \, \ddot{\theta})
+    \end{bmatrix}
+    \]
+
+    ---
+
+    #### Substituting the Auxiliary System
+
+    \[
+    \begin{bmatrix}
+    \ddot{x} \\
+    \ddot{y}
+    \end{bmatrix}
+    =
+    \frac{1}{m}
+    R\left(\theta + \frac{\pi}{2}\right)
+    \begin{bmatrix}
+    z + \frac{m \ell}{3} \dot{\theta}^2 \\
+    \frac{m \ell}{3} \cdot \frac{v_2}{z}
+    \end{bmatrix}
+    \]
+
+    ---
+
+    #### Final Expression for \( \ddot{h} \)
+
+    \[
+    \ddot{h} = 
+    \frac{1}{m}
+    R\left(\theta + \frac{\pi}{2}\right)
+    \begin{bmatrix}
+    z + \frac{m \ell}{3} \dot{\theta}^2 \\
+    \frac{m \ell}{3} \cdot \frac{v_2}{z}
+    \end{bmatrix}
+    +
+    \frac{\ell}{3}
+    \begin{bmatrix}
+    \sin\theta \, \dot{\theta}^2 - \cos\theta \, \ddot{\theta} \\
+    - \cos\theta \, \dot{\theta}^2 - \sin\theta \, \ddot{\theta}
+    \end{bmatrix}
+    \]
+    """,
+    column=None, disabled=False, hide_code=True, name="_"
+)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(
