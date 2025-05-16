@@ -2191,6 +2191,64 @@ def _(mo):
     return
 
 
+@app.cell
+def _(np):
+    def cubic_hermite_coeffs(p0, dp0, pf, dpf, tf):
+
+        a0 = p0
+        a1 = dp0
+        A = np.array([[tf*2, tf*3],
+                      [2*tf, 3*tf**2]])
+        b = np.array([pf - a0 - a1*tf,
+                      dpf - a1])
+
+        a2, a3 = np.linalg.solve(A, b)
+        return a0, a1, a2, a3
+
+    def cubic_hermite_eval(coeffs, t):
+        a0, a1, a2, a3 = coeffs
+        p = a0 + a1*t + a2*t*2 + a3*t*3
+        dp = a1 + 2*a2*t + 3*a3*t**2
+        d2p = 2*a2 + 6*a3*t
+        d3p = 6*a3
+        return p, dp, d2p, d3p
+
+    def compute(
+        x_0, dx_0, y_0, dy_0, theta_0, dtheta_0, z_0, dz_0,
+        x_tf, dx_tf, y_tf, dy_tf, theta_tf, dtheta_tf, z_tf, dz_tf,
+        tf,
+    ):
+        coeffs_x = cubic_hermite_coeffs(x_0, dx_0, x_tf, dx_tf, tf)
+        coeffs_dx = None 
+        coeffs_y = cubic_hermite_coeffs(y_0, dy_0, y_tf, dy_tf, tf)
+        coeffs_dy = None
+        coeffs_theta = cubic_hermite_coeffs(theta_0, dtheta_0, theta_tf, dtheta_tf, tf)
+        coeffs_dtheta = None
+        coeffs_z = cubic_hermite_coeffs(z_0, dz_0, z_tf, dz_tf, tf)
+        coeffs_dz = None
+
+        def fun(t):
+        
+            if t < 0:
+                t = 0
+            elif t > tf:
+                t = tf
+
+            x, dx, ddx, dddx = cubic_hermite_eval(coeffs_x, t)
+            y, dy, ddy, dddy = cubic_hermite_eval(coeffs_y, t)
+            theta, dtheta, ddtheta, dddtheta = cubic_hermite_eval(coeffs_theta, t)
+            z, dz, ddz, dddz = cubic_hermite_eval(coeffs_z, t)
+
+            f = -z  
+
+            phi = theta
+
+            return x, dx, y, dy, theta, dtheta, z, dz, f, phi
+
+        return fun
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(
