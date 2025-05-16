@@ -2071,6 +2071,26 @@ def _(mo):
     return
 
 
+@app.cell
+def _(np):
+    def T(x, dx, y, dy, theta, dtheta, z, dz, ell, M, g):
+        # h
+        h_x = x - (ell/3) * np.sin(theta)
+        h_y = y + (ell/3) * np.cos(theta)
+    
+        dh_x = dx - (ell/3) * np.cos(theta) * dtheta
+        dh_y = dy - (ell/3) * np.sin(theta) * dtheta
+    
+        d2h_x = (1/M) * np.sin(theta) * z
+        d2h_y = (1/M) * (-np.cos(theta)) * z - g
+    
+        d3h_x = (1/M) * (np.cos(theta) * dtheta * z + np.sin(theta) * dz)
+        d3h_y = (1/M) * (np.sin(theta) * dtheta * z - np.cos(theta) * dz)
+    
+        return h_x, h_y, dh_x, dh_y, d2h_x, d2h_y, d3h_x, d3h_y
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(
@@ -2083,6 +2103,53 @@ def _(mo):
     Implement the corresponding function `T_inv`.
     """
     )
+    return
+
+
+@app.cell
+def _(np):
+    def T_inv(hx, hy, dhx, dhy, ddhx, ddhy, d3hx, d3hy, M, ell, g):
+        a = ddhx
+        b = ddhy + g
+
+        theta = np.arctan2(-a, b)  
+
+        sin_theta = np.sin(theta)
+        cos_theta = np.cos(theta)
+        if abs(sin_theta) > 1e-8:
+            z1 = M * a / sin_theta
+        else:
+            z1 = None
+
+        if abs(cos_theta) > 1e-8:
+            z2 = - M * b / cos_theta
+        else:
+            z2 = None
+
+        if z1 is not None and z2 is not None:
+            z = (z1 + z2) / 2.0
+        elif z1 is not None:
+            z = z1
+        elif z2 is not None:
+            z = z2
+        else:
+            raise ValueError("Cannot determine z: sin(theta) and cos(theta) too small.")
+
+        A = np.array([
+            [cos_theta * z, sin_theta],
+            [sin_theta * z, -cos_theta]
+        ])
+        b_vec = M * np.array([d3hx, d3hy])
+
+        dtheta, dz = np.linalg.solve(A, b_vec)
+
+        x = hx + (ell / 3) * np.sin(theta)
+        y = hy - (ell / 3) * np.cos(theta)
+
+        dx = dhx + (ell / 3) * np.cos(theta) * dtheta
+        dy = dhy + (ell / 3) * np.sin(theta) * dtheta
+
+        return x, dx, y, dy, theta, dtheta, z, dz
     return
 
 
