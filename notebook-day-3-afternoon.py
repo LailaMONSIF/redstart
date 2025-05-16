@@ -2246,7 +2246,7 @@ def _(np):
             return x, dx, y, dy, theta, dtheta, z, dz, f, phi
 
         return fun
-    return
+    return (compute,)
 
 
 @app.cell(hide_code=True)
@@ -2264,6 +2264,120 @@ def _(mo):
     Make the graph of the relevant variables as a function of time, then make a video out of the same result. Comment and iterate if necessary!
     """
     )
+    return
+
+
+@app.cell
+def _(M, g, l, np):
+    x_0, dx_0, y_0, dy_0, theta_0, dtheta_0, z_0, dz_0 = 5.0, 0.0, 20.0, -1.0, -np.pi/8, 0.0, -M*g, 0.0
+    x_tf, dx_tf, y_tf, dy_tf, theta_tf, dtheta_tf, z_tf, dz_tf = 0.0, 0.0, 4/3*l, 0.0, 0.0, 0.0, -M*g, 0.0
+    tf = 10.0
+    return (
+        dtheta_0,
+        dtheta_tf,
+        dx_0,
+        dx_tf,
+        dy_0,
+        dy_tf,
+        dz_0,
+        dz_tf,
+        tf,
+        theta_0,
+        theta_tf,
+        x_0,
+        x_tf,
+        y_0,
+        y_tf,
+        z_0,
+        z_tf,
+    )
+
+
+@app.cell
+def _(
+    compute,
+    dtheta_0,
+    dtheta_tf,
+    dx_0,
+    dx_tf,
+    dy_0,
+    dy_tf,
+    dz_0,
+    dz_tf,
+    tf,
+    theta_0,
+    theta_tf,
+    x_0,
+    x_tf,
+    y_0,
+    y_tf,
+    z_0,
+    z_tf,
+):
+    fun = compute(
+        x_0, dx_0, y_0, dy_0, theta_0, dtheta_0, z_0, dz_0,
+        x_tf, dx_tf, y_tf, dy_tf, theta_tf, dtheta_tf, z_tf, dz_tf,
+        tf,
+    )
+    return (fun,)
+
+
+@app.cell
+def _(fun, np, plt, tf):
+    times = np.linspace(0, tf, 500)
+    x_vals, dx_vals = [], []
+    y_vals, dy_vals = [], []
+    theta_vals, dtheta_vals = [], []
+    z_vals, dz_vals = [], []
+    f_vals, phi_vals = [], []
+
+    for t in times:
+        x, dx, y, dy, theta, dtheta, z, dz, f, phi = fun(t)
+        x_vals.append(x)
+        dx_vals.append(dx)
+        y_vals.append(y)
+        dy_vals.append(dy)
+        theta_vals.append(theta)
+        dtheta_vals.append(dtheta)
+        z_vals.append(z)
+        dz_vals.append(dz)
+        f_vals.append(f)
+        phi_vals.append(phi)
+
+    plt.figure(figsize=(14,10))
+
+    plt.subplot(3,2,1)
+    plt.plot(times, x_vals)
+    plt.title('x(t)')
+    plt.grid()
+
+    plt.subplot(3,2,2)
+    plt.plot(times, y_vals)
+    plt.title('y(t)')
+    plt.grid()
+
+    plt.subplot(3,2,3)
+    plt.plot(times, theta_vals)
+    plt.title('theta(t)')
+    plt.grid()
+
+    plt.subplot(3,2,4)
+    plt.plot(times, z_vals)
+    plt.title('z(t)')
+    plt.grid()
+
+    plt.subplot(3,2,5)
+    plt.plot(times, f_vals)
+    plt.title('f(t) (Control input)')
+    plt.grid()
+
+    plt.subplot(3,2,6)
+    plt.plot(times, phi_vals)
+    plt.title('phi(t) (Control input)')
+    plt.grid()
+
+    plt.tight_layout()
+    plt.show()
     return
 
 
