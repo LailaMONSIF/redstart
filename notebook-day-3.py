@@ -1858,6 +1858,83 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
+    We are given the fourth-order derivative of the output $h$:
+
+    $$ h^{(4)} = \frac{1}{m} R\left(\theta+\frac{\pi}{2}\right) \begin{bmatrix} v_1 - z\dot{\theta}^2 \\ v_2 - 2\dot{z}\dot{\theta} \end{bmatrix} $$
+
+    where $R(\phi)$ is the 2D rotation matrix, $R(\phi) = \begin{bmatrix} \cos\phi & -\sin\phi \\ \sin\phi & \cos\phi \end{bmatrix}$.
+
+    Specifically, $R\left(\theta+\frac{\pi}{2}\right) = \begin{bmatrix} -\sin\theta & -\cos\theta \\ \cos\theta & -\sin\theta \end{bmatrix}$.
+
+    The terms $v_1$ and $v_2$ are outputs of a previous auxiliary system, which are inputs to the dynamics $\ddot{z}=v_1$ and $\ddot{\theta}=-v_2/z$.
+
+    We want to design a new auxiliary system with input $\mathbf{u} = \begin{bmatrix} u_1 \\ u_2 \end{bmatrix}$ that produces the output $\mathbf{v} = \begin{bmatrix} v_1 \\ v_2 \end{bmatrix}$ such that the overall system dynamics become $h^{(4)} = \mathbf{u}$.
+
+    Setting $h^{(4)} = \mathbf{u}$:
+
+    $$ \mathbf{u} = \frac{1}{m} R\left(\theta+\frac{\pi}{2}\right) \begin{bmatrix} v_1 - z\dot{\theta}^2 \\ v_2 - 2\dot{z}\dot{\theta} \end{bmatrix} $$
+
+    To define the new auxiliary system, we need to express $\mathbf{v}$ (its output) in terms of $\mathbf{u}$ (its input) and the system states $(\theta, \dot{\theta}, z, \dot{z})$. We can solve the above equation for the vector $\begin{bmatrix} v_1 - z\dot{\theta}^2 \\ v_2 - 2\dot{z}\dot{\theta} \end{bmatrix}$:
+
+    Multiply by $m$:
+
+    $$ m\mathbf{u} = R\left(\theta+\frac{\pi}{2}\right) \begin{bmatrix} v_1 - z\dot{\theta}^2 \\ v_2 - 2\dot{z}\dot{\theta} \end{bmatrix} $$
+
+    Multiply by the inverse of the rotation matrix, $R^{-1}\left(\theta+\frac{\pi}{2}\right)$. Since $R$ is a rotation matrix, its inverse is its transpose, $R^T\left(\theta+\frac{\pi}{2}\right)$, or $R\left(-\left(\theta+\frac{\pi}{2}\right)\right)$.
+
+    $$ R^{-1}\left(\theta+\frac{\pi}{2}\right) = \begin{bmatrix} \cos\left(-\theta-\frac{\pi}{2}\right) & -\sin\left(-\theta-\frac{\pi}{2}\right) \\ \sin\left(-\theta-\frac{\pi}{2}\right) & \cos\left(-\theta-\frac{\pi}{2}\right) \end{bmatrix} = \begin{bmatrix} -\sin\theta & \cos\theta \\ -\cos\theta & -\sin\theta \end{bmatrix} $$
+
+    So,
+
+    $$ m R^{-1}\left(\theta+\frac{\pi}{2}\right) \mathbf{u} = \begin{bmatrix} v_1 - z\dot{\theta}^2 \\ v_2 - 2\dot{z}\dot{\theta} \end{bmatrix} $$
+
+    Substituting the matrix form:
+
+    $$ m \begin{bmatrix} -\sin\theta & \cos\theta \\ -\cos\theta & -\sin\theta \end{bmatrix} \begin{bmatrix} u_1 \\ u_2 \end{bmatrix} = \begin{bmatrix} v_1 - z\dot{\theta}^2 \\ v_2 - 2\dot{z}\dot{\theta} \end{bmatrix} $$
+
+    $$ m \begin{bmatrix} -u_1\sin\theta + u_2\cos\theta \\ -u_1\cos\theta - u_2\sin\theta \end{bmatrix} = \begin{bmatrix} v_1 - z\dot{\theta}^2 \\ v_2 - 2\dot{z}\dot{\theta} \end{bmatrix} $$
+
+    From this, we can define $v_1$ and $v_2$:
+
+    1.  $v_1 - z\dot{\theta}^2 = m(-u_1\sin\theta + u_2\cos\theta)$
+        $$ v_1 = z\dot{\theta}^2 + m(-u_1\sin\theta + u_2\cos\theta) $$
+    2.  $v_2 - 2\dot{z}\dot{\theta} = m(-u_1\cos\theta - u_2\sin\theta)$
+        $$ v_2 = 2\dot{z}\dot{\theta} + m(-u_1\cos\theta - u_2\sin\theta) $$
+
+    This new "auxiliary system" is thus defined by the state feedback law:
+
+    $$ \mathbf{v} = \begin{bmatrix} v_1 \\ v_2 \end{bmatrix} = \begin{bmatrix} z\dot{\theta}^2 - m u_1\sin\theta + m u_2\cos\theta \\ 2\dot{z}\dot{\theta} - m u_1\cos\theta - m u_2\sin\theta \end{bmatrix} $$
+
+    This can be written more compactly as:
+
+    $$ \mathbf{v} = \begin{bmatrix} z\dot{\theta}^2 \\ 2\dot{z}\dot{\theta} \end{bmatrix} + m R^{-1}\left(\theta+\frac{\pi}{2}\right) \mathbf{u} $$
+
+    *Verification:*
+
+    Substitute this expression for $\mathbf{v}$ back into the equation for $h^{(4)}$:
+
+    $$
+    \begin{aligned}
+    h^{(4)} &= \frac{1}{m} R\left(\theta+\frac{\pi}{2}\right) \left( \left( \begin{bmatrix} z\dot{\theta}^2 \\ 2\dot{z}\dot{\theta} \end{bmatrix} + m R^{-1}\left(\theta+\frac{\pi}{2}\right) \mathbf{u} \right) - \begin{bmatrix} z\dot{\theta}^2 \\ 2\dot{z}\dot{\theta} \end{bmatrix} \right) \\
+    &= \frac{1}{m} R\left(\theta+\frac{\pi}{2}\right) \left( m R^{-1}\left(\theta+\frac{\pi}{2}\right) \mathbf{u} \right) \\
+    &= R\left(\theta+\frac{\pi}{2}\right) R^{-1}\left(\theta+\frac{\pi}{2}\right) \mathbf{u}
+    \end{aligned}
+    $$
+
+    Since $R R^{-1} = I$ (the identity matrix):
+
+    $$ h^{(4)} = I \mathbf{u} = \mathbf{u} $$
+
+    Thus, by defining the inputs $v_1$ and $v_2$ (which drive $\ddot{z}$ and $\ddot{\theta}$) using the new control inputs $u_1, u_2$ and the system states as shown above, we achieve the linearized dynamics $h^{(4)} = \mathbf{u}$. This means the system consisting of $h$ and its derivatives up to $h^{(3)}$ acts as a chain of four integrators for each component of $h$, driven by the new input $\mathbf{u}$.
+    """
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
     ## 🧩 State to Derivatives of the Output
 
     Implement a function `T` of `x, dx, y, dy, theta, dtheta, z, dz` that returns `h_x, h_y, dh_x, dh_y, d2h_x, d2h_y, d3h_x, d3h_y`.
