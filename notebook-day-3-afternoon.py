@@ -2192,11 +2192,14 @@ def _(mo):
 
 
 @app.cell
-def _(np):
+def _(M, l, np):
     def cubic_hermite_coeffs(p0, dp0, pf, dpf, tf):
-
         a0 = p0
         a1 = dp0
+        A = np.array([[2*tf*2, 3*tf*3],
+                      [4*tf, 9*tf**2]])
+        b = np.array([pf - a0 - a1*tf,
+                      dpf - a1])
         A = np.array([[tf*2, tf*3],
                       [2*tf, 3*tf**2]])
         b = np.array([pf - a0 - a1*tf,
@@ -2219,16 +2222,11 @@ def _(np):
         tf,
     ):
         coeffs_x = cubic_hermite_coeffs(x_0, dx_0, x_tf, dx_tf, tf)
-        coeffs_dx = None 
         coeffs_y = cubic_hermite_coeffs(y_0, dy_0, y_tf, dy_tf, tf)
-        coeffs_dy = None
         coeffs_theta = cubic_hermite_coeffs(theta_0, dtheta_0, theta_tf, dtheta_tf, tf)
-        coeffs_dtheta = None
         coeffs_z = cubic_hermite_coeffs(z_0, dz_0, z_tf, dz_tf, tf)
-        coeffs_dz = None
 
         def fun(t):
-        
             if t < 0:
                 t = 0
             elif t > tf:
@@ -2239,9 +2237,21 @@ def _(np):
             theta, dtheta, ddtheta, dddtheta = cubic_hermite_eval(coeffs_theta, t)
             z, dz, ddz, dddz = cubic_hermite_eval(coeffs_z, t)
 
-            f = -z  
+            R_T = np.array([
+                [np.sin(theta), -np.cos(theta)],
+                [np.cos(theta),  np.sin(theta)]
+            ])
 
-            phi = theta
+            v1 = ddtheta
+            boost_vector = np.array([
+                z + (M * l / 3) * dtheta**2,
+                (M * l / 3) * v1 / z
+            ])
+
+            f_vector = R_T @ boost_vector
+            fx, fy = f_vector
+            f = np.linalg.norm(f_vector)
+            phi = np.arctan2(fx, fy) - theta  # relative angle
 
             return x, dx, y, dy, theta, dtheta, z, dz, f, phi
 
@@ -2378,6 +2388,53 @@ def _(fun, np, plt, tf):
 
     plt.tight_layout()
     plt.show()
+    return
+
+
+@app.cell
+def _(FFMpegWriter, FuncAnimation, M, fun, g, l, mo, np, plt):
+    def make_video_from_compute(compute, tf=10.0, filename="booster_simulation.mp4"):
+
+        times = np.linspace(0, tf, 300)
+
+        data = [compute(t) for t in times]
+        x_vals, dx_vals, y_vals, dy_vals, theta_vals, dtheta_vals, z_vals, dz_vals, f_vals, phi_vals = zip(*data)
+
+        fig, ax = plt.subplots(figsize=(5, 8))
+
+        def draw_booster(ax, x, y, theta, f, phi):
+            ax.clear()
+            dx = l * np.sin(theta)
+            dy = l * np.cos(theta)
+            x0, y0 = x - dx, y - dy
+            x1, y1 = x + dx, y + dy
+            ax.plot([x0, x1], [y0, y1], 'k-', lw=4)
+
+            # Flamme
+            flame_len = (f / (M * g)) * l
+            fx = flame_len * np.sin(theta + phi)
+            fy = flame_len * np.cos(theta + phi)
+            ax.plot([x0, x0 - fx], [y0, y0 - fy], color='orange', lw=3)
+
+            # Réglages d'affichage
+            ax.set_xlim(-2, 6)
+            ax.set_ylim(0, 22)
+            ax.set_aspect("equal")
+            ax.set_title("Booster Trajectory (Exact Linearization)")
+            ax.set_xticks([])
+            ax.set_yticks([])
+            ax.set_facecolor("aliceblue")
+
+        def update(frame):
+            draw_booster(ax, x_vals[frame], y_vals[frame], theta_vals[frame], f_vals[frame], phi_vals[frame])
+
+        ani = FuncAnimation(fig, update, frames=len(times), interval=50)
+        writer = FFMpegWriter(fps=20)
+        ani.save(filename, writer=writer)
+        plt.close()
+        return filename
+    make_video_from_compute(fun, tf=10.0, filename="booster_trajectory.mp4")
+    mo.video("booster_trajectory.mp4")
     return
 
 
