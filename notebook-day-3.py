@@ -1681,79 +1681,45 @@ def _(mo):
     return
 
 
-@app.function
-def plot_geometric_interpretation_of_h():
-    import numpy as np
-    import matplotlib.pyplot as plt
-
-    # Constantes
-    l = 1.0  # demi-longueur du booster
-    theta = np.pi / 6  # 30°
-    x, y = 0.0, 5.0  # position du centre de masse
-
-    # Centre, base (h), sommet
-    dx = l * np.sin(theta)
-    dy = l * np.cos(theta)
-    xc, yc = x, y
-    xf, yf = x - (l/3) * np.sin(theta), y + (l/3) * np.cos(theta)
-    xt, yt = x + dx, y - dy
-
-    # Affichage
-    fig, ax = plt.subplots(figsize=(6, 6))
-    ax.plot([xt, xc, xf], [yt, yc, yf], 'k-', lw=4, label="Booster (axe)")
-    ax.plot(xc, yc, 'bo', label="Center of Mass (x, y)")
-    ax.plot(xf, yf, 'ro', label="Output $h$")
-
-    # Flèche direction vers h
-    ax.arrow(xc, yc, xf - xc, yf - yc, head_width=0.05, color="red", length_includes_head=True)
-
-    ax.set_xlim(-1.5, 1.5)
-    ax.set_ylim(3.5, 6.5)
-    ax.set_aspect("equal")
-    ax.set_xlabel("x")
-    ax.set_ylabel("y")
-    ax.set_title("Geometric Interpretation of $h$")
-    ax.legend()
-    ax.grid(True)
-    plt.show()
-
-
 @app.cell
 def _():
-    plot_geometric_interpretation_of_h()
+    def plot_h_from_cm():
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        # Paramètres
+        ell = 1.0
+        theta = np.pi / 4  # 45 degrés
+        x, y = 2.0, 1.0     # centre de masse (x, y)
+
+        # Calcul du point h
+        hx = x - (ell / 3) * np.sin(theta)
+        hy = y + (ell / 3) * np.cos(theta)
+
+        # Calcul des extrémités du booster (longueur totale = ell)
+        dx = (ell / 2) * np.sin(theta)
+        dy = -(ell / 2) * np.cos(theta)
+
+        x1, y1 = x - dx, y - dy
+        x2, y2 = x + dx, y + dy
+
+        # Tracé
+        plt.figure(figsize=(6, 6))
+        plt.plot([x1, x2], [y1, y2], 'b-', label='Booster')
+        plt.plot(x, y, 'ko', label='Centre de masse (x, y)')
+        plt.plot(hx, hy, 'ro', label='Point h')
+        plt.text(x, y, '  (x, y)', fontsize=10, verticalalignment='bottom')
+        plt.text(hx, hy, '  h', fontsize=10, color='r', verticalalignment='bottom')
+
+        plt.axis('equal')
+        plt.grid(True)
+        plt.legend()
+        plt.xlabel("x")
+        plt.ylabel("y")
+        plt.title("Interprétation géométrique du point h")
+        plt.show()
+    plot_h_from_cm()
     return
-
-
-app._unparsable_cell(
-    r"""
-    Geometric Interpretation of the Output \( h \)
-
-    The output \( h \in \mathbb{R}^2 \) is defined as:
-
-    \[
-    h = 
-    \begin{bmatrix}
-    x - \dfrac{\ell}{3} \sin\theta \\
-    y + \dfrac{\ell}{3} \cos\theta
-    \end{bmatrix}
-    \]
-
-    ---
-
-    - \( (x, y) \) is the *center of mass* of the booster.
-    - \( \theta \) is the tilt of the booster.
-    - The point \( h \) corresponds to a position *\(\ell/3\)* below the center of mass, *along the body axis*.
-    - Geometrically, \( h \) represents the *base* of the booster, i.e. the *point where the force \( (f_x, f_y) \)* is applied.
-
-    ---
-
-
-    - The output \( h \) is used to *project the force direction* into global coordinates.
-    - It is computed via a rigid-body translation: going down by \( \ell/3 \) from the center of mass along the angle \( \theta \).
-    - In the figure, the point \( h \) is shown in red, below the center of mass (blue), connected by the booster axis (black).
-    """,
-    column=None, disabled=False, hide_code=True, name="_"
-)
 
 
 @app.cell(hide_code=True)
@@ -1772,28 +1738,45 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-    Geometric Interpretation of the Output \( h \)
+    The output $h$ of the original system is:
 
-    The output \( h \in \mathbb{R}^2 \) is defined as:
+    $$ h = \begin{bmatrix} x - (\ell/3)\sin\theta \\ y + (\ell/3)\cos\theta \end{bmatrix} $$
 
-    \[
-    h = 
-    \begin{bmatrix}
-    x - \dfrac{\ell}{3} \sin\theta \\
-    y + \dfrac{\ell}{3} \cos\theta
-    \end{bmatrix}
-    \]
+    *First-Order Derivative $\dot{h}$*
 
-    - \( (x, y) \) is the *center of mass* of the booster.
-    - \( \theta \) is the tilt of the booster.
-    - The point \( h \) corresponds to a position *\(\ell/3\)* below the center of mass, *along the body axis*.
-    - Geometrically, \( h \) represents the *base* of the booster, i.e. the *point where the force \( (f_x, f_y) \)* is applied.
+    $$ \dot{h} = \frac{d}{dt}h = \begin{bmatrix} \dot{x} - (\ell/3)\dot{\theta}\cos\theta \\ \dot{y} - (\ell/3)\dot{\theta}\sin\theta \end{bmatrix} $$
 
-    ---
+    This expression for $\dot{h}$ is a function of $\dot{x}$, $\dot{y}$, $\theta$, and $\dot{\theta}$.
 
-    - The output \( h \) is used to *project the force direction* into global coordinates.
-    - It is computed via a rigid-body translation: going down by \( \ell/3 \) from the center of mass along the angle \( \theta \).
-    - In the figure, the point \( h \) is shown in red, below the center of mass (blue), connected by the booster axis (black).
+    *Second-Order Derivative $\ddot{h}$*
+
+    The second time derivative of $h$, when the auxiliary system is plugged into the booster, can be computed as follows. First, the general expression for $\ddot{h}$ is:
+
+    $$ \ddot{h} = \begin{bmatrix} \ddot{x} - (\ell/3)(\ddot{\theta}\cos\theta - \dot{\theta}^2\sin\theta) \\ \ddot{y} - (\ell/3)(\ddot{\theta}\sin\theta + \dot{\theta}^2\cos\theta) \end{bmatrix} $$
+
+    The booster dynamics are $m\ddot{x} = f_x$ and $m\ddot{y} = f_y$. The forces are given by:
+
+    $$ \begin{bmatrix} f_x \\ f_y \end{bmatrix} = R\left(\theta+\frac{\pi}{2}\right) \begin{bmatrix} z + \frac{m\ell}{3}\dot{\theta}^2 \\ \frac{m\ell}{3}\frac{v_2}{z} \end{bmatrix} = \begin{bmatrix} -\sin\theta & -\cos\theta \\ \cos\theta & -\sin\theta \end{bmatrix} \begin{bmatrix} z + \frac{m\ell}{3}\dot{\theta}^2 \\ \frac{m\ell}{3}\frac{v_2}{z} \end{bmatrix} $$
+
+    This leads to:
+
+    $$ \ddot{x} = \frac{1}{m}\left(-\sin\theta \left(z + \frac{m\ell}{3}\dot{\theta}^2\right) - \cos\theta \left(\frac{m\ell}{3}\frac{v_2}{z}\right)\right) = -\frac{z}{m}\sin\theta - \frac{\ell}{3}\dot{\theta}^2\sin\theta - \frac{\ell}{3}\frac{v_2}{z}\cos\theta $$
+
+    $$ \ddot{y} = \frac{1}{m}\left(\cos\theta \left(z + \frac{m\ell}{3}\dot{\theta}^2\right) - \sin\theta \left(\frac{m\ell}{3}\frac{v_2}{z}\right)\right) = \frac{z}{m}\cos\theta + \frac{\ell}{3}\dot{\theta}^2\cos\theta - \frac{\ell}{3}\frac{v_2}{z}\sin\theta $$
+
+    Substituting these into the expression for $\ddot{h}$:
+
+    $$ \ddot{h}_1 = \left(-\frac{z}{m}\sin\theta - \frac{\ell}{3}\dot{\theta}^2\sin\theta - \frac{\ell}{3}\frac{v_2}{z}\cos\theta\right) - \frac{\ell}{3}(\ddot{\theta}\cos\theta - \dot{\theta}^2\sin\theta) = -\frac{z}{m}\sin\theta - \frac{\ell}{3}\cos\theta\left(\frac{v_2}{z} + \ddot{\theta}\right) $$
+
+    $$ \ddot{h}_2 = \left(\frac{z}{m}\cos\theta + \frac{\ell}{3}\dot{\theta}^2\cos\theta - \frac{\ell}{3}\frac{v_2}{z}\sin\theta\right) - \frac{\ell}{3}(\ddot{\theta}\sin\theta + \dot{\theta}^2\cos\theta) = \frac{z}{m}\cos\theta - \frac{\ell}{3}\sin\theta\left(\frac{v_2}{z} + \ddot{\theta}\right) $$
+
+    For $\ddot{h}$ to be a function of only $\theta$ and $z$ (as typically desired in exact linearization), the term $\left(\frac{v_2}{z} + \ddot{\theta}\right)$ must simplify. This occurs if the rotational dynamics satisfy $\ddot{\theta} = -v_2/z$. This relationship is often established by the control design, e.g., if torque $I\ddot{\theta}$ is proportional to $-V_2 \ell$, with $V_2 = \frac{m\ell}{3}\frac{v_2}{z}$ and $I=\frac{1}{3}m\ell^2$.
+
+    Under the condition $\ddot{\theta} = -v_2/z$, we have $\frac{v_2}{z} + \ddot{\theta} = 0$. Then $\ddot{h}$ simplifies to:
+
+    $$ \ddot{h} = \begin{bmatrix} -(z/m)\sin\theta \\ (z/m)\cos\theta \end{bmatrix} $$
+
+    This expression is a function of $\theta$ and $z$ (and constants $m, \ell$), and is valid for $z \neq 0$.
     """
     )
     return
@@ -1809,6 +1792,50 @@ def _(mo):
     """
     )
     return
+
+
+app._unparsable_cell(
+    r"""
+    *Third-Order Derivative $h^{(3)}$*
+
+    Starting from $\ddot{h} = \frac{1}{m}\begin{bmatrix} -z\sin\theta \\ z\cos\theta \end{bmatrix}$, we differentiate with respect to time:
+
+    $$
+    h^{(3)} = \frac{d}{dt}\ddot{h} = \frac{1}{m} \begin{bmatrix} \frac{d}{dt}(-z\sin\theta) \\ \frac{d}{dt}(z\cos\theta) \end{bmatrix} = \frac{1}{m} \begin{bmatrix} -\dot{z}\sin\theta - z\dot{\theta}\cos\theta \\ \dot{z}\cos\theta - z\dot{\theta}\sin\theta \end{bmatrix}
+    $$
+
+    This expression is a function of $\theta, \dot{\theta}, z, \dot{z}$ (and $m$). The problem asks for $h^{(3)}$ as a function of $\theta$ and $z$ (and constants). The above expression only meets this condition if $\dot{\theta}$ and $\dot{z}$ are constants or specific functions of $\theta, z$. For example, if evaluated at a point where $\dot{\theta}=0$ and $\dot{z}=0$, then $h^{(3)} = \mathbf{0}$. For the general case needed to compute $h^{(4)}$, we use the expression above.
+
+    *Fourth-Order Derivative $h^{(4)}$*
+
+    Differentiating $h^{(3)}$ with respect to time:
+
+    $h^{(4)}_1 = \frac{1}{m} \frac{d}{dt}(-\dot{z}\sin\theta - z\dot{\theta}\cos\theta) = -\frac{1}{m} \left[ (\ddot{z}\sin\theta + \dot{z}\dot{\theta}\cos\theta) + (\dot{z}\dot{\theta}\cos\theta + z\ddot{\theta}\cos\theta - z\dot{\theta}^2\sin\theta) \right]$
+
+    $h^{(4)}_1 = -\frac{1}{m} \left[ \ddot{z}\sin\theta + 2\dot{z}\dot{\theta}\cos\theta + z\ddot{\theta}\cos\theta - z\dot{\theta}^2\sin\theta \right]$
+
+    $h^{(4)}_2 = \frac{1}{m} \frac{d}{dt}(\dot{z}\cos\theta - z\dot{\theta}\sin\theta) = \frac{1}{m} \left[ (\ddot{z}\cos\theta - \dot{z}\dot{\theta}\sin\theta) - (\dot{z}\dot{\theta}\sin\theta + z\ddot{\theta}\sin\theta + z\dot{\theta}^2\cos\theta) \right]$
+
+    $h^{(4)}_2 = \frac{1}{m} \left[ \ddot{z}\cos\theta - 2\dot{z}\dot{\theta}\sin\theta - z\ddot{\theta}\sin\theta - z\dot{\theta}^2\cos\theta \right]$
+
+    Substitute auxiliary system dynamics $\ddot{z}=v_1$ and the booster's angular dynamics consequence $\ddot{\theta}=-v_2/z$ (which requires $z \neq 0$):
+
+    $h^{(4)}_1 = -\frac{1}{m} \left[ v_1\sin\theta + 2\dot{z}\dot{\theta}\cos\theta - v_2\cos\theta - z\dot{\theta}^2\sin\theta \right]$
+
+    $h^{(4)}_2 = \frac{1}{m} \left[ v_1\cos\theta - 2\dot{z}\dot{\theta}\sin\theta + v_2\sin\theta - z\dot{\theta}^2\cos\theta \right]$
+
+    Thus, $h^{(4)}$ as a function of $\theta, \dot{\theta}, z, \dot{z}, \mathbf{v}=(v_1, v_2)$ (and constant $m$) is:
+
+    $$ h^{(4)} = \frac{1}{m} \begin{bmatrix} -v_1\sin\theta - 2\dot{z}\dot{\theta}\cos\theta + v_2\cos\theta + z\dot{\theta}^2\sin\theta \\ v_1\cos\theta - 2\dot{z}\dot{\theta}\sin\theta + v_2\sin\theta - z\dot{\theta}^2\cos\theta \end{bmatrix} $$
+
+    This can be written as:
+
+    $$ h^{(4)} = \frac{1}{m} \left( (v_1 - z\dot{\theta}^2) \begin{bmatrix} -\sin\theta \\ \cos\theta \end{bmatrix} + (v_2 - 2\dot{z}\dot{\theta}) \begin{bmatrix} \cos\theta \\ \sin\theta \end{bmatrix} \right) = \frac{1}{m} R\left(\theta+\frac{\pi}{2}\right) \begin{bmatrix} v_1 - z\dot{\theta}^2 \\ v_2 - 2\dot{z}\dot{\theta} \end{bmatrix} $$
+
+    where $R(\phi)$ is the standard 2D rotation matrix.
+    """,
+    column=None, disabled=False, hide_code=True, name="_"
+)
 
 
 @app.cell(hide_code=True)
