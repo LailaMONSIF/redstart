@@ -1722,6 +1722,45 @@ def _():
     return
 
 
+@app.cell
+def _(mo):
+    mo.md(
+        r"""
+    ##Interprétation géométrique du point *h*
+
+    On a :
+
+    \[
+    h = \begin{bmatrix}
+    x - \frac{\ell}{3} \sin \theta \\
+    y + \frac{\ell}{3} \cos \theta
+    \end{bmatrix}
+    \]
+
+    où :
+
+    - \((x, y)\) est le **centre de masse** du booster,
+    - \(\ell\) est la **demi longueur totale** du booster,
+    - \(\theta\) est l'angle d'inclinaison du booster.
+
+
+    Le point \( h \) n’est pas au centre du booster, mais **décalé** par rapport à lui :
+
+    \[
+    \vec{v} = -\frac{\ell}{3} \sin \theta \cdot \vec{i} + \frac{\ell}{3} \cos \theta \cdot \vec{j}
+    \]
+
+    Cela signifie que \( h \) est situé :
+
+    - À une **distance de \( \ell/3 \)** du centre de masse,
+    - Dans une direction **perpendiculaire à l’axe du booster**,
+    - Et orienté vers l’**extrémité supérieure** (dans le sens opposé à l’inclinaison).
+
+    """
+    )
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(
