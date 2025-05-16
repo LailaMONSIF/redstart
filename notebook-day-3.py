@@ -1943,6 +1943,42 @@ def _(mo):
     return
 
 
+@app.cell
+def _(np):
+    def T(x, dx, y, dy, theta, dtheta, z, dz, v1, v2):
+        import numpy as np
+
+        # Constantes
+        l = 1.0
+        m = 1.0
+
+        # h
+        h_x = x - (l / 3) * np.sin(theta)
+        h_y = y + (l / 3) * np.cos(theta)
+
+        # Première dérivée
+        dh_x = dx - (l / 3) * dtheta * np.cos(theta)
+        dh_y = dy + (l / 3) * dtheta * np.sin(theta)
+
+        # Deuxième dérivée (avec exact linearization active)
+        d2h_x = - (z / m) * np.sin(theta)
+        d2h_y = (z / m) * np.cos(theta)
+
+        # Troisième dérivée
+        d3h_x = - (1 / m) * (dz * np.sin(theta) + z * dtheta * np.cos(theta))
+        d3h_y = (1 / m) * (dz * np.cos(theta) - z * dtheta * np.sin(theta))
+
+        # Quatrième dérivée (exact linearization condition: d2theta = -v2 / z)
+        d4h_x = - (1 / m) * ( (v2 + dtheta) * np.sin(theta) + dz * dtheta * np.cos(theta) + z * v1 * np.cos(theta) )
+        d4h_y = (1 / m) * ( (v2 + dtheta) * np.cos(theta) - dz * dtheta * np.sin(theta) - z * v1 * np.sin(theta) )
+
+        return h_x, h_y, dh_x, dh_y, d2h_x, d2h_y, d3h_x, d3h_y, d4h_x, d4h_y
+
+    # Exemple de test
+    T(x=0, dx=0.1, y=0, dy=0.1, theta=np.pi/6, dtheta=0.2, z=1.0, dz=0.1, v1=0.2, v2=0.3)
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(
@@ -1955,6 +1991,46 @@ def _(mo):
     Implement the corresponding function `T_inv`.
     """
     )
+    return
+
+
+@app.function
+def T_inv(h_x, h_y, dh_x, dh_y, d2h_x, d2h_y, d3h_x, d3h_y):
+    import numpy as np
+
+    # Constantes physiques
+    l = 1.0  # demi-longueur
+    m = 1.0  # masse
+
+    # 1. Reconstruct theta
+    theta = np.arctan2(-h_x, h_y)  # since: h_x = -l/3 sin(θ), h_y = l/3 cos(θ)
+
+    # 2. Reconstruct position (x, y)
+    x = h_x + (l / 3) * np.sin(theta)
+    y = h_y - (l / 3) * np.cos(theta)
+
+    # 3. Reconstruct angular velocity dtheta
+    dtheta = (dh_y - dh_x * np.tan(theta)) / (
+        (l / 3) * (np.sin(theta) + np.cos(theta) * np.tan(theta))
+    )
+
+    # 4. Reconstruct (dx, dy)
+    dx = dh_x + (l / 3) * dtheta * np.cos(theta)
+    dy = dh_y - (l / 3) * dtheta * np.sin(theta)
+
+    # 5. Reconstruct z from second derivative
+    z = -m * d2h_x / np.sin(theta)  # OR: z = m * d2h_y / np.cos(theta)
+
+    # 6. Reconstruct dz from third derivative
+    dz = -m * d3h_x + z * dtheta * np.cos(theta)
+
+    return x, dx, y, dy, theta, dtheta, z, dz
+
+
+@app.cell
+def _():
+    T_inv(h_x=-0.166, h_y=0.289, dh_x=0.042, dh_y=0.133,
+          d2h_x=-0.5, d2h_y=0.866, d3h_x=-0.223, d3h_y=-0.013)
     return
 
 
